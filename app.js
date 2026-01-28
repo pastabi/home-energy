@@ -3,6 +3,16 @@ import "dotenv/config";
 
 const app = express();
 
+let lastStatus = {
+  status: checkEnergy(),
+  lastCheckTime: new Date(),
+};
+
+setInterval(() => {
+  lastStatus.status = checkEnergy();
+  lastStatus.lastCheckTime = new Date();
+}, 60000);
+
 async function checkEnergy() {
   try {
     const controller = new AbortController();
@@ -22,14 +32,22 @@ async function checkEnergy() {
 }
 
 app.get("/", async (req, res) => {
-  const energyStatus = await checkEnergy();
+  const energyStatus = lastStatus.status;
 
   const statusText = energyStatus ? "Світло є" : "Cвітла нема";
   const statusStyle = energyStatus ? "color: green" : "color: red";
 
+  const lastCheckDate = lastStatus.lastCheckTime.toISOString().split("T");
+  let lastCheckTime = lastCheckDate.at(1).split("");
+  for (let i = 0; i < 5; i++) {
+    lastCheckTime.pop();
+  }
+  lastCheckTime = lastCheckTime.join("");
+
   res.send(`
     <h2 style="text-align: center; margin-top: 20px">Статус світла:</h2>
-    <h1 style="${statusStyle}; text-align: center">${statusText}</h1>`);
+    <h1 style="${statusStyle}; text-align: center">${statusText}</h1>
+    <h4 style="text-align: center;">Остання перевірка була: ${lastCheckTime} ${lastCheckDate.at(0)}</h4>`);
 });
 
 const port = process.env.PORT || 5001;
