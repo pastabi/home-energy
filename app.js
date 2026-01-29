@@ -4,12 +4,12 @@ import "dotenv/config";
 const app = express();
 
 let lastStatus = {
-  status: checkEnergy(),
+  status: await checkEnergy(),
   lastCheckTime: new Date(),
 };
 
-setInterval(() => {
-  lastStatus.status = checkEnergy();
+setInterval(async () => {
+  lastStatus.status = await checkEnergy();
   lastStatus.lastCheckTime = new Date();
 }, 60000);
 
