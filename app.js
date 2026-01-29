@@ -37,15 +37,16 @@ app.get("/", async (req, res) => {
   const statusText = energyStatus ? "Світло є" : "Cвітла нема";
   const statusStyle = energyStatus ? "color: green" : "color: red";
 
-  const lastCheckDate = lastStatus.lastCheckTime.toLocaleString("uk-UA").split(", ");
-  let lastCheckLocalTime = lastCheckDate.at(1).split(":");
-  lastCheckLocalTime.pop();
-  lastCheckLocalTime = lastCheckLocalTime.join(":");
+  const formattedTime = lastStatus.lastCheckTime.toLocaleTimeString("uk-UA", {
+    timeZone: "Europe/Kyiv",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 
   res.send(`
     <h2 style="text-align: center; margin-top: 20px">Статус світла:</h2>
     <h1 style="${statusStyle}; text-align: center">${statusText}</h1>
-    <h4 style="text-align: center;">Остання перевірка була о ${lastCheckLocalTime}</h4>`);
+    <h4 style="text-align: center;">Остання перевірка була о ${formattedTime}</h4>`);
 });
 
 const port = process.env.PORT || 5001;
