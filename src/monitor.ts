@@ -15,8 +15,6 @@ async function checkStatus(): Promise<Status> {
 
     clearTimeout(timeoutId);
 
-    console.log(`status checked on ${new Date()}`);
-
     let status: boolean = responce.status === 401 || responce.status === 200 ? true : false;
 
     return { status, checkDate: new Date() };

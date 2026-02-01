@@ -3,32 +3,32 @@ name: Deploy to VPS
 on:
   push:
     branches:
-      - main  # Trigger on pushes to main
+      - main
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest  # GitHub-hosted runner (free for public repos)
-
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4  # Clones your repo (not needed for deploy, but good practice)
+        uses: actions/checkout@v4
 
       - name: Set up SSH
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
-          ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts  # Add server to known hosts (replace with your host if using secret)
+          ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
 
       - name: Deploy to server
         run: |
           ssh -i ~/.ssh/id_ed25519 ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} '
-            cd app  # Replace with your actual server repo path
-            git pull origin main  # Pull latest changes
-            npm install  # Install dependencies (runs only if package-lock.json changed, but safe to always run)
-            cd client  # Assuming frontend is in a subfolder; adjust if monorepo
-            npm run build  # Build Vite frontend (outputs to dist or similar)
-            cd ..  # Assuming backend subfolder; adjust
-            npm run build  # Build TypeScript backend (e.g., tsc)
-            pm2 restart all  # Restart PM2 processes; adjust if using systemd (e.g., sudo systemctl restart myapp.service) or plain node
+            cd app
+            git pull origin main
+            npm install
+            cd client
+            npm install
+            npm run build
+            cd ..
+            npm run build
+            pm2 restart all
           '
