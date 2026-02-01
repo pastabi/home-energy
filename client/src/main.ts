@@ -17,7 +17,7 @@ async function fetchStatusData(): Promise<EnergyStatus | undefined> {
     if (!response.ok) {
       throw new Error(`Energy status request failed. Status: ${response.status}`);
     }
-    const { lastStatus: data }: { lastStatus: EnergyStatus } = await response.json();
+    const { fullStatus: data }: { fullStatus: EnergyStatus } = await response.json();
 
     return data;
   } catch (error) {
