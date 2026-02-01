@@ -3,8 +3,8 @@ import { readFile, writeFile } from "fs/promises";
 import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-// const storageFileName = "status-history.json";
-const storageFileName = "status-history-test.json";
+const storageFileName = "status-history.json";
+// const storageFileName = "status-history-test.json";
 
 export type Status = {
   status: boolean;

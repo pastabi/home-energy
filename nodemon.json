@@ -1,9 +1,3 @@
 {
-  "ignore": [
-    "client/*",
-    "dist/*",
-    "*.test.ts",
-    "src/status-history.json",
-    "src/status-history-test.json"
-  ]
+  "ignore": ["client/*", "dist/*", "*.test.ts", "status-history.json", "status-history-test.json"]
 }
