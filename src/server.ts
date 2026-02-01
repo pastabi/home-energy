@@ -2,24 +2,31 @@ import express, { Request, Response } from "express";
 import "dotenv/config";
 const url = process.env.HOME_URL;
 const port = process.env.PORT || 5001;
+import path from "path";
 
 const app = express();
 
-let lastStatus = {
+type LastStatus = {
+  status: boolean;
+  lastCheckDate: Date;
+};
+let lastStatus: LastStatus = {
   status: await checkEnergy(),
-  lastCheckTime: new Date(),
+  lastCheckDate: new Date(),
 };
 
 setInterval(async () => {
   lastStatus.status = await checkEnergy();
-  lastStatus.lastCheckTime = new Date();
+  lastStatus.lastCheckDate = new Date();
 }, 60000);
 
-async function checkEnergy() {
+async function checkEnergy(): Promise<boolean> {
   try {
     const controller = new AbortController();
+
     const timeoutId = setTimeout(() => controller.abort(), 5000);
     if (!url) throw new Error("HOME_URL is not defined in .env file");
+
     const responce = await fetch(url, {
       signal: controller.signal,
     });
@@ -34,22 +41,15 @@ async function checkEnergy() {
   }
 }
 
-app.get("/", async (req: Request, res: Response) => {
-  const energyStatus = lastStatus.status;
+app.use(express.json());
 
-  const statusText = energyStatus ? "Світло є" : "Cвітла нема";
-  const statusStyle = energyStatus ? "color: green" : "color: red";
+app.use(express.static("./client/dist"));
 
-  const formattedTime: string = lastStatus.lastCheckTime.toLocaleTimeString("uk-UA", {
-    timeZone: "Europe/Kyiv",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-
-  res.send(`
-    <h2 style="text-align: center; margin-top: 20px">Статус світла:</h2>
-    <h1 style="${statusStyle}; text-align: center">${statusText}</h1>
-    <h4 style="text-align: center;">Остання перевірка була о ${formattedTime}</h4>`);
+app.get("/api/v1/status", (req: Request, res: Response) => {
+  res.status(200).json({ lastStatus });
+});
+app.get("/{*any}", (req: Request, res: Response) => {
+  res.status(404).sendFile(path.resolve("./client/dist/index.html"));
 });
 
 app.listen(port, () => console.log(`server is listening on port: ${port}`));
