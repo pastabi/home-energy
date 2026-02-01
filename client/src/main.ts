@@ -1,14 +1,29 @@
+import { constructHistoryEntry } from "./historyEntry";
 import "./style.css";
 
-type EnergyStatus = {
+export type HistoryEntry = {
+  changedToStatus: boolean;
+  dateOfChange: string;
+};
+
+type FullStatus = {
   status: boolean;
   lastCheckDate: string;
+  lastCheckStatus: boolean;
+  history: HistoryEntry[];
+};
+
+type StatusContent = {
+  statusText: string;
+  formattedDateText: string;
+  history: HistoryEntry[];
 };
 
 const statusElement = document.querySelector<HTMLHeadingElement>(".status-info")!;
 const statusCheckDateElement = document.querySelector<HTMLHeadingElement>(".status-last-check")!;
+const historyListElement = document.querySelector<HTMLUListElement>(".history-list")!;
 
-async function fetchStatusData(): Promise<EnergyStatus | undefined> {
+async function fetchStatusData(): Promise<FullStatus | undefined> {
   const apiUrl: string = "/api/v1/status";
 
   try {
@@ -17,7 +32,7 @@ async function fetchStatusData(): Promise<EnergyStatus | undefined> {
     if (!response.ok) {
       throw new Error(`Energy status request failed. Status: ${response.status}`);
     }
-    const { fullStatus: data }: { fullStatus: EnergyStatus } = await response.json();
+    const { fullStatus: data }: { fullStatus: FullStatus } = await response.json();
 
     return data;
   } catch (error) {
@@ -28,17 +43,33 @@ async function fetchStatusData(): Promise<EnergyStatus | undefined> {
 
 async function updateStatusOnScreen() {
   const newStatus = await fetchStatusData();
-  if (!newStatus) return;
-  else {
-    statusElement.textContent = newStatus.status ? "Світло є" : "Світла нема";
+  const statusContent: StatusContent = {
+    statusText: "",
+    formattedDateText: "",
+    history: [],
+  };
+  console.log(newStatus);
+  if (!newStatus) {
+    statusContent.statusText = "Немає зв'язку з сервером. Спробуйте пізніше.";
+  } else {
+    statusContent.statusText = newStatus.status ? "Світло є" : "Світла нема";
     const formattedDate: string = new Date(newStatus.lastCheckDate).toLocaleTimeString("uk-UA", {
       timeZone: "Europe/Kyiv",
       hour: "2-digit",
       minute: "2-digit",
     });
-    console.log("");
-    statusCheckDateElement.textContent = `Остання перевірка була о ${formattedDate}`;
+    statusContent.formattedDateText = `Остання перевірка була о ${formattedDate}`;
+    statusContent.history = newStatus.history;
   }
+
+  statusElement.textContent = statusContent.statusText;
+  statusCheckDateElement.textContent = statusContent.formattedDateText;
+
+  statusContent.history.forEach((entry) => {
+    const historyEntryElement = document.createElement("li");
+
+    historyListElement.appendChild(constructHistoryEntry(historyEntryElement, entry));
+  });
 }
 
 await updateStatusOnScreen();

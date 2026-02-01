@@ -37,12 +37,11 @@ let fullStatus: FullStatus = {
 };
 
 async function getHistory(): Promise<History | undefined> {
-  const filePath = path.resolve(__dirname, storageFileName);
-
+  const filePath = path.resolve(__dirname, "..", storageFileName);
   try {
+    // for app to work, a least empty file should exist, so don't forget to create it before first build
     const historyString: string = await readFile(filePath, "utf-8");
 
-    // will crash the app if not valid json, learn how to handle
     const historyObject: History = JSON.parse(historyString || "{}");
 
     if (!historyObject.lastStatus)
@@ -57,9 +56,10 @@ async function getHistory(): Promise<History | undefined> {
 }
 
 async function setHistory(history: History): Promise<void> {
+  const filePath = path.resolve(__dirname, "..", storageFileName);
   try {
     const historyString = JSON.stringify(history);
-    await writeFile(path.resolve(__dirname, storageFileName), historyString);
+    await writeFile(filePath, historyString);
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
     console.log(errorMessage);

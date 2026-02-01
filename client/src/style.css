@@ -35,6 +35,15 @@ h1 {
   line-height: 1.1;
 }
 
+ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+ul li {
+  margin-bottom: 0.5rem;
+}
+
 #app {
   max-width: 1280px;
   margin: 0 auto;
