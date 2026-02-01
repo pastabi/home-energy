@@ -3,6 +3,8 @@ import { readFile, writeFile } from "fs/promises";
 import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+// const storageFileName = "status-history.json";
+const storageFileName = "status-history-test.json";
 
 export type Status = {
   status: boolean;
@@ -35,11 +37,10 @@ let fullStatus: FullStatus = {
 };
 
 async function getHistory(): Promise<History | undefined> {
+  const filePath = path.resolve(__dirname, storageFileName);
+
   try {
-    const historyString: string = await readFile(
-      path.resolve(__dirname, "status-history.json"),
-      "utf-8",
-    );
+    const historyString: string = await readFile(filePath, "utf-8");
 
     // will crash the app if not valid json, learn how to handle
     const historyObject: History = JSON.parse(historyString || "{}");
@@ -58,7 +59,7 @@ async function getHistory(): Promise<History | undefined> {
 async function setHistory(history: History): Promise<void> {
   try {
     const historyString = JSON.stringify(history);
-    await writeFile(path.resolve(__dirname, "status-history.json"), historyString);
+    await writeFile(path.resolve(__dirname, storageFileName), historyString);
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
     console.log(errorMessage);
@@ -79,7 +80,7 @@ async function updateHistory(
 
     if (newEnergyStatus === true) {
       // if evergy appeared, we don't do retries, so we set date as is
-      history.history.push({
+      history.history.unshift({
         changedToStatus: newEnergyStatus,
         dateOfChange: status.checkDate,
       });
@@ -91,7 +92,7 @@ async function updateHistory(
         return new Date(dateMilisecondsNumber - minutesMillisecondsNumber);
       }
 
-      history.history.push({
+      history.history.unshift({
         changedToStatus: newEnergyStatus,
         dateOfChange: substractMinutes(status.checkDate, retryMinsToFalse),
       });

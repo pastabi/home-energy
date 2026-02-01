@@ -6,15 +6,13 @@ import fullStatus, { setFullStatusFromHistory } from "./statusStorage.js";
 
 const app = express();
 
-console.log(fullStatus);
-// --- retrieves status from file to get default one before the first check ---
+// retrieves status from file to get something to show before the first check
 await setFullStatusFromHistory();
+// console.log(fullStatus);
 
 setInterval(async () => {
   await updateStatus();
 }, 60000);
-
-console.log(fullStatus);
 
 app.use(express.static("./client/dist"));
 

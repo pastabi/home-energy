@@ -1,2 +1,4 @@
 /node_modules
 .env
+src/status-history.json
+src/status-history-test.json
