@@ -27,9 +27,11 @@ let errorCounter = 0;
 
 export default async function updateStatus() {
   const freshStatus = await checkStatus();
+
   if (fullStatus.status === freshStatus.status) {
     await updateHistory(freshStatus);
     await updateFullStatus(freshStatus);
+    errorCounter = 0;
   } else {
     if (freshStatus.status === false) {
       errorCounter++;

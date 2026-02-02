@@ -24,4 +24,4 @@ app.get("/{*any}", (req: Request, res: Response) => {
 });
 
 const port = process.env.PORT || 5001;
-app.listen(port, () => console.log(`server is listening on port: ${port}`));
+app.listen(port, () => console.log(`Server is listening on port: ${port}...`));
