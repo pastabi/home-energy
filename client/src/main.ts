@@ -1,75 +1,18 @@
-import { constructHistoryEntry } from "./historyEntry";
+import { getData } from "./getData";
 import "./style.css";
+import { updateStatusOnScreen } from "./updateScreen";
 
-export type HistoryEntry = {
-  changedToStatus: boolean;
-  dateOfChange: string;
-};
+// on page load staring data load, while loading showing a placeholder
+// (let) calculating how much time passed since the last check (+5 seconds)
+// setting up the interval that will run every second and callback will do 2 things
+// ACTION 1 - DISPLAY
+// - will count how much seconds pass since the last status check and display it
+// ACTION 2 - CHECK CONDITION
+// - will check if 60 seconds passed since the last check, if so, it will call 2 functions
+// await getData() - will fetch the data and assign it to appropriate global variables
+// updateScreen() - will update the content on the screen with the new data
+// calculate and reset time since the last check
 
-type FullStatus = {
-  status: boolean;
-  lastCheckDate: string;
-  lastCheckStatus: boolean;
-  history: HistoryEntry[];
-};
-
-type StatusContent = {
-  statusText: string;
-  formattedDateText: string;
-  history: HistoryEntry[];
-};
-
-const statusElement = document.querySelector<HTMLHeadingElement>(".status-info")!;
-const statusCheckDateElement = document.querySelector<HTMLHeadingElement>(".status-last-check")!;
-const historyListElement = document.querySelector<HTMLUListElement>(".history-list")!;
-
-async function fetchStatusData(): Promise<FullStatus | undefined> {
-  const apiUrl: string = "/api/v1/status";
-
-  try {
-    const response = await fetch(apiUrl);
-    console.log(response);
-    if (!response.ok) {
-      throw new Error(`Energy status request failed. Status: ${response.status}`);
-    }
-    const { fullStatus: data }: { fullStatus: FullStatus } = await response.json();
-
-    return data;
-  } catch (error) {
-    const errorMessage = error instanceof Error ? console.log(error.message) : "Unknown error";
-    console.log(errorMessage);
-  }
-}
-
-async function updateStatusOnScreen() {
-  const newStatus = await fetchStatusData();
-  const statusContent: StatusContent = {
-    statusText: "",
-    formattedDateText: "",
-    history: [],
-  };
-  console.log(newStatus);
-  if (!newStatus) {
-    statusContent.statusText = "Немає зв'язку з сервером. Спробуйте пізніше.";
-  } else {
-    statusContent.statusText = newStatus.status ? "Світло є" : "Світла нема";
-    const formattedDate: string = new Date(newStatus.lastCheckDate).toLocaleTimeString("uk-UA", {
-      timeZone: "Europe/Kyiv",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-    statusContent.formattedDateText = `Остання перевірка була о ${formattedDate}`;
-    statusContent.history = newStatus.history;
-  }
-
-  statusElement.textContent = statusContent.statusText;
-  statusCheckDateElement.textContent = statusContent.formattedDateText;
-
-  statusContent.history.forEach((entry) => {
-    const historyEntryElement = document.createElement("li");
-
-    historyListElement.appendChild(constructHistoryEntry(historyEntryElement, entry));
-  });
-}
-
-await updateStatusOnScreen();
+updateStatusOnScreen();
+await getData();
+updateStatusOnScreen();

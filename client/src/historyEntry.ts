@@ -1,4 +1,4 @@
-import type { HistoryEntry } from "./main";
+import type { HistoryEntry } from "./types";
 
 export function constructHistoryEntry(
   historyEntryElement: HTMLLIElement,

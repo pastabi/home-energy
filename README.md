@@ -3,6 +3,7 @@
 ### Frontend
 
 - [ ] **Create history list elements** that proportionally display status duration.
+- [ ] **Display possible status text** under the last check timer.
 - [ ] **Define the layout structure.**
 - [ ] **Add loading placeholders** for status and history to prevent layout shifting; add icons (favicon and Apple touch icons).
 - [ ] **Update HTML metadata** and resolve all accessibility warnings.
@@ -14,5 +15,6 @@
 
 - [ ] **Limit history results** to a maximum of one week (or at least the most recent record).
 - [ ] **Secure the router:** Disable Wi-Fi and WPS to ensure the device only accepts connections via Ethernet.
+- [ ] **Rewrite updateStatus function** so it will construct new history array only one time and feed it into updateHistory and update full status.
 - [ ] **Integrate a Telegram bot** for notifications.
 - [ ] **Implement log rotation:** Save storage files monthly; concatenate the last two months of history to ensure seamless data transitions at the start of a new month.
