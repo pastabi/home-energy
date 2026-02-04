@@ -1,5 +1,5 @@
 import { currentStatusContent } from "./getData";
-import { constructHistoryEntry } from "./historyEntry";
+import { constructHistoryEntry, constructLastEntry } from "./historyEntry";
 
 const statusElement = document.querySelector<HTMLHeadingElement>(".status-info")!;
 const statusCheckDateElement = document.querySelector<HTMLHeadingElement>(".status-last-check")!;
@@ -14,15 +14,21 @@ export function updateLastCheckDateOnScreen() {
   statusCheckDateElement.textContent = currentStatusContent.formattedDateText;
 }
 
+// called every minute
 // updates elements on the screen based on new state
 export function updateStatusOnScreen() {
   statusElement.textContent = currentStatusContent.statusText;
   updateLastCheckDateOnScreen();
   predictionTextElement.textContent = currentStatusContent.statusPrediction;
 
-  currentStatusContent.history.forEach((entry) => {
+  currentStatusContent.history.forEach((entry, entryIndex) => {
     const historyEntryElement = document.createElement("li");
 
-    historyListElement.appendChild(constructHistoryEntry(historyEntryElement, entry));
+    historyListElement.appendChild(constructHistoryEntry(historyEntryElement, entry, entryIndex));
   });
+
+  const lastHistoryElement = document.createElement("li");
+  const lastHistoryEntry = currentStatusContent.history.at(-1);
+  if (lastHistoryEntry)
+    historyListElement.appendChild(constructLastEntry(lastHistoryElement, lastHistoryEntry));
 }

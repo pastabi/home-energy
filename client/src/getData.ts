@@ -1,4 +1,4 @@
-import { isAfter } from "date-fns";
+import { isAfter, startOfDay } from "date-fns";
 import type {
   CurrentStatus,
   CurrentStatusContent,
@@ -8,7 +8,8 @@ import type {
 } from "./types";
 import {
   arrayOfTextForWeekdays,
-  generateArrayOfWeekdaysTimestamps,
+  generateArrayOfDaysStartTimestamps,
+  textForWeekday,
   toHoursAndMinutes,
   toTimeOfDay,
 } from "./utils";
@@ -58,10 +59,10 @@ function updateMillisecondsPassed(): void {
 }
 
 function constructHistoryContentArray(): void {
-  const daysStartTimestamps = generateArrayOfWeekdaysTimestamps();
+  const daysStartTimestamps = generateArrayOfDaysStartTimestamps();
   const daysStartTexts = arrayOfTextForWeekdays(daysStartTimestamps);
 
-  const coef = 10; // x minutes = 1px of height
+  const coef = 8; // x minutes = 1px of height
 
   let historyContent: HistoryEntryContent[] = currentStatus.history.map(
     (entry: HistoryEntry, entryIndex: number, rawHistory): HistoryEntryContent => {
@@ -71,8 +72,9 @@ function constructHistoryContentArray(): void {
 
       const content: HistoryEntryContent = {
         statusDuration: { durationText: "", statusHeight: 0 },
-        dayChange: { weekdayText: "", dayStartHeight: 0 },
+        dayChange: [],
         thisStatus: { toStatus: changedToStatus, timeText: "" },
+        ifLastEntry: { lastEntryHeight: 0, lastEntryText: "" },
       };
 
       // filling dayChange
@@ -86,13 +88,16 @@ function constructHistoryContentArray(): void {
           const timestampsDifference = daysStartTimestamps[i] - new Date(dateOfChange).getTime();
           const height = timestampsDifference / 1000 / 60 / coef;
           const text = daysStartTexts[i];
-          content.dayChange = { dayStartHeight: height, weekdayText: text };
-          break;
+          if (Array.isArray(content.dayChange)) {
+            content.dayChange.push({ dayStartHeight: height, weekdayText: text });
+          }
+          continue;
         } else if (
           isAfter(new Date(previousEntryDate), new Date(daysStartTimestamps[i])) &&
           isAfter(new Date(dateOfChange), new Date(daysStartTimestamps[i]))
         ) {
-          content.dayChange = false;
+          if (Array.isArray(content.dayChange) && content.dayChange.length === 0)
+            content.dayChange = false;
           break;
         } else if (
           isAfter(new Date(daysStartTimestamps[i]), new Date(dateOfChange)) &&
@@ -115,6 +120,15 @@ function constructHistoryContentArray(): void {
 
       // filling statusChangeText
       content.thisStatus.timeText = toTimeOfDay(dateOfChange);
+
+      // filling ifLastEntry
+      const dateOfChangeTimestamp: number = new Date(dateOfChange).getTime();
+      const startOfDateTimeStamp = startOfDay(new Date(dateOfChangeTimestamp)).getTime();
+      const lastEntryTimeDiff = dateOfChangeTimestamp - startOfDateTimeStamp;
+      const lastEntryHeight = lastEntryTimeDiff / 1000 / 60 / coef;
+      const lastEntryText = textForWeekday(startOfDateTimeStamp);
+
+      content.ifLastEntry = { lastEntryHeight, lastEntryText };
 
       return content;
     },
@@ -140,7 +154,7 @@ function updateLastCheckDate(): void {
   });
 
   const secondsPassed = Math.floor(millisecondsPassed / 1000);
-  const lastCheckString = `Остання перевірка була ${secondsPassed} cек. назад (о ${formattedDate})`;
+  const lastCheckString = `Остання перевірка була ${secondsPassed} cек назад (о ${formattedDate})`;
   currentStatusContent.formattedDateText = lastCheckString;
 }
 

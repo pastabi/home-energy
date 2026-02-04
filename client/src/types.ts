@@ -10,15 +10,18 @@ export type CurrentStatus = {
   history: HistoryEntry[];
 };
 
+export type WeekdayContent = { dayStartHeight: number; weekdayText: string };
 export type HistoryEntryContent = {
   // height: next status timestamp - this status timestamp / coef
   // text: mm or hh:mm on this status
   statusDuration: { statusHeight: number; durationText: string };
   // height: day change timestamp - this state timestamp / coef
   // text: date and day of the week starting
-  dayChange: { dayStartHeight: number; weekdayText: string } | false;
+  dayChange: WeekdayContent[] | false;
   // just time string in hh:mm format and to which status changed
   thisStatus: { toStatus: boolean; timeText: string };
+  // infro for the last entry (from the start of the day) by chance if this entry will be last
+  ifLastEntry: { lastEntryHeight: number; lastEntryText: string };
 };
 
 export type CurrentStatusContent = {
