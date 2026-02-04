@@ -1,4 +1,4 @@
-import { getData } from "./getData";
+import { updateStatusData } from "./getData";
 import "./style.css";
 import { updateStatusOnScreen } from "./updateScreen";
 
@@ -14,5 +14,5 @@ import { updateStatusOnScreen } from "./updateScreen";
 // calculate and reset time since the last check
 
 updateStatusOnScreen();
-await getData();
+await updateStatusData();
 updateStatusOnScreen();

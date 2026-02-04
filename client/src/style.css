@@ -31,8 +31,22 @@ body {
 }
 
 h1 {
-  font-size: 3.2em;
+  font-size: 1.5rem;
   line-height: 1.1;
+}
+
+.status-info {
+  font-size: 3.2rem;
+  margin: 0;
+  font-weight: bold;
+}
+.status-last-check {
+  font-weight: bold;
+  margin-bottom: 0;
+}
+.status-prediction {
+  margin-top: 0;
+  font-style: italic;
 }
 
 ul {
@@ -41,7 +55,14 @@ ul {
   padding: 0;
 }
 ul li {
-  margin-bottom: 0.5rem;
+  margin: 0;
+  padding: 0 0 0 0;
+  text-align: left;
+}
+ul li div {
+  margin: 0;
+  padding: 0 0 0 0;
+  line-height: 1.1;
 }
 
 #app {
