@@ -73,7 +73,7 @@ function constructHistoryContentArray(): void {
       const content: HistoryEntryContent = {
         statusDuration: { durationText: "", statusHeight: 0 },
         dayChange: [],
-        thisStatus: { toStatus: changedToStatus, timeText: "" },
+        thisStatus: { toStatus: changedToStatus, timeText: "", statusISOTime: "" },
         ifLastEntry: { lastEntryHeight: 0, lastEntryText: "" },
       };
 
@@ -89,7 +89,11 @@ function constructHistoryContentArray(): void {
           const height = timestampsDifference / 1000 / 60 / coef;
           const text = daysStartTexts[i];
           if (Array.isArray(content.dayChange)) {
-            content.dayChange.push({ dayStartHeight: height, weekdayText: text });
+            content.dayChange.push({
+              dayStartHeight: height,
+              weekdayText: text,
+              weekdayISOTime: new Date(daysStartTimestamps[i]).toISOString(),
+            });
           }
           continue;
         } else if (
@@ -120,6 +124,7 @@ function constructHistoryContentArray(): void {
 
       // filling statusChangeText
       content.thisStatus.timeText = toTimeOfDay(dateOfChange);
+      content.thisStatus.statusISOTime = dateOfChange;
 
       // filling ifLastEntry
       const dateOfChangeTimestamp: number = new Date(dateOfChange).getTime();
@@ -166,7 +171,8 @@ export async function updateStatusData(): Promise<void> {
   // update current state object
   currentStatus.status = data.status;
   currentStatus.lastCheckDate = data.lastCheckDate;
-  currentStatus.lastCheckStatus = false;
+  currentStatus.lastCheckStatus = data.lastCheckStatus;
+  // currentStatus.lastCheckStatus = false;
   currentStatus.history = data.history;
 
   // update text object based on the current state and milliseconds passed, which will be used by update screen functions
