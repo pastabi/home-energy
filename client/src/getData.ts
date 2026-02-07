@@ -23,8 +23,8 @@ export const currentStatus: CurrentStatus = {
 };
 
 export const currentStatusContent: CurrentStatusContent = {
-  statusText: "Loading...",
-  formattedDateText: "",
+  statusText: "Світло ...",
+  formattedDateText: "Остання перевірка була __ cек назад (о __:__)",
   statusPrediction: "",
   history: [],
 };
@@ -56,7 +56,7 @@ function constructHistoryContentArray(): void {
   const daysStartTimestamps = generateArrayOfDaysStartTimestamps();
   const daysStartTexts = arrayOfTextForWeekdays(daysStartTimestamps);
 
-  const coef = 8; // x minutes = 1px of height
+  const coef = 4; // x minutes = 1px of height
 
   let historyContent: HistoryEntryContent[] = currentStatus.history.map(
     (entry: HistoryEntry, entryIndex: number, rawHistory): HistoryEntryContent => {
@@ -146,7 +146,7 @@ function updateMillisecondsPassed(): void {
   // so when we fetch the data next time, we know for sure that server already got the fresh one
   const lastCheckDate: number = new Date(currentStatus.lastCheckDate).getTime() + 5000;
   const now: number = Date.now();
-  if (lastCheckDate > now) millisecondsPassed = 60000 - now - lastCheckDate;
+  if (lastCheckDate > now) millisecondsPassed = 60000 - (lastCheckDate - now);
   else millisecondsPassed = now - lastCheckDate;
 }
 
@@ -154,7 +154,7 @@ function updateMillisecondsPassed(): void {
 // updating milliseconds veriable and instantly updating text content based on it
 export function updateLastCheckDate(): void {
   updateMillisecondsPassed();
-
+  currentStatus.lastCheckDate;
   const formattedDate: string = new Date(currentStatus.lastCheckDate).toLocaleTimeString("uk-UA", {
     timeZone: "Europe/Kyiv",
     hour: "2-digit",
@@ -170,7 +170,6 @@ export function updateLastCheckDate(): void {
 // initialize the data fetch and immidiately update all state based on the new data
 export async function updateStatusData(): Promise<void> {
   const data = await getStatusData();
-  console.log("new data has come!");
   if (!data) return;
   // update current state object
   currentStatus.status = data.status;

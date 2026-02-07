@@ -3,8 +3,8 @@ import type { HistoryEntryContent, WeekdayContent } from "./types";
 // base is 24px = 1.5, specified value for line-height in root style
 const lineHeight = parseFloat(window.getComputedStyle(document.documentElement).lineHeight);
 // for now colors are here, but will be moved to another file later
-const ligthColor = "#fff080";
-const darkColor = "#213547";
+const ligthColor = "rgb(255, 240, 128)";
+const darkColor = "rgb(33, 53, 71)";
 
 function createWeekdayStartDivs(
   weekdays: WeekdayContent[],
@@ -35,6 +35,8 @@ function createWeekdayStartDivs(
       display: block; 
       position: relative; 
       bottom: ${weekdayStart}px;
+      border-bottom: dashed 3px var(--border-color);
+      font-style: italic;
     `;
 
     return prev.concat(
@@ -107,16 +109,18 @@ export function constructHistoryEntry(
   const containerStyle = `
     position: relative;
     padding-top: ${addedStatusHeight}px; 
-    padding-left: 6px;
-    border-left: 4px solid ${statusColor};
+    padding-left: 8px;
+    border-left: 8px solid ${statusColor};
   `;
   const statusDurationStyle = `
     position: relative;
     text-align: center; 
-    bottom: ${statusDurationStart}px
+    bottom: ${statusDurationStart}px;
+    opacity: 70%;
   `;
   const statusTextStyle = `
     position: relative;
+    font-weight: bold;
   `;
 
   // TEXT
@@ -162,16 +166,19 @@ export function constructLastEntry(
 
   const statusColor = !toStatus ? ligthColor : darkColor;
 
-  const lastEntryStyle = `
+  const lastEntryContainerStyle = `
   position: relative; 
   padding-top: ${normalizedLastEntryHeight - lineHeight}px; 
-  padding-left: 6px;
-  border-left: 4px solid ${statusColor};
+  padding-left: 8px;
+  border-left: 8px solid ${statusColor};
+  `;
+  const lastEntryTextStyle = `
+  border-bottom: dashed 3px var(--border-color);
   `;
 
   lastEntryElement.innerHTML = `
-  <div style="${lastEntryStyle}">
-  <p>${lastEntryText}</p>
+  <div style="${lastEntryContainerStyle}">
+  <p style="${lastEntryTextStyle}">${lastEntryText}</p>
   </div>`;
 
   return lastEntryElement;
