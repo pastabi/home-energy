@@ -1,6 +1,8 @@
 import type { HistoryEntryContent, WeekdayContent } from "./types";
 
-const lineHeight = 24; // 24px = 1.5, specified value for line-height in root style
+// base is 24px = 1.5, specified value for line-height in root style
+const lineHeight = parseFloat(window.getComputedStyle(document.documentElement).lineHeight);
+// for now colors are here, but will be moved to another file later
 const ligthColor = "#fff080";
 const darkColor = "#213547";
 
