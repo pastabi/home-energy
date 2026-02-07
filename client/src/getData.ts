@@ -52,12 +52,6 @@ async function getStatusData(): Promise<CurrentStatus | undefined> {
   }
 }
 
-function updateMillisecondsPassed(): void {
-  const lastCheckDate: number = new Date(currentStatus.lastCheckDate).getTime();
-  const now: number = Date.now();
-  millisecondsPassed = now - lastCheckDate;
-}
-
 function constructHistoryContentArray(): void {
   const daysStartTimestamps = generateArrayOfDaysStartTimestamps();
   const daysStartTexts = arrayOfTextForWeekdays(daysStartTimestamps);
@@ -147,9 +141,18 @@ function constructHistoryContentArray(): void {
   currentStatusContent.history = historyContent;
 }
 
+function updateMillisecondsPassed(): void {
+  // add 5 seconds to the actual last check time, to get a buffer
+  // so when we fetch the data next time, we know for sure that server already got the fresh one
+  const lastCheckDate: number = new Date(currentStatus.lastCheckDate).getTime() + 5000;
+  const now: number = Date.now();
+  if (lastCheckDate > now) millisecondsPassed = 60000 - now - lastCheckDate;
+  else millisecondsPassed = now - lastCheckDate;
+}
+
 // called every second to display seconds since from last check
 // updating milliseconds veriable and instantly updating text content based on it
-function updateLastCheckDate(): void {
+export function updateLastCheckDate(): void {
   updateMillisecondsPassed();
 
   const formattedDate: string = new Date(currentStatus.lastCheckDate).toLocaleTimeString("uk-UA", {
@@ -167,6 +170,7 @@ function updateLastCheckDate(): void {
 // initialize the data fetch and immidiately update all state based on the new data
 export async function updateStatusData(): Promise<void> {
   const data = await getStatusData();
+  console.log("new data has come!");
   if (!data) return;
   // update current state object
   currentStatus.status = data.status;
