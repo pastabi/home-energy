@@ -9,7 +9,7 @@ const darkColor = "rgb(33, 53, 71)";
 function createWeekdayStartDivs(
   weekdays: WeekdayContent[],
   rawStatusHeight: number,
-  baseHeight: number,
+  addedStatusHeight: number,
 ): string {
   const divs = weekdays.reduce((prev, curr, index) => {
     const { dayStartHeight: actualWeekdayStart, weekdayText, weekdayISOTime } = curr;
@@ -20,7 +20,7 @@ function createWeekdayStartDivs(
     // checking how close the weekday to the next entry
     const diff = rawStatusHeight - normalizedWeekdayStart;
 
-    if (normalizedWeekdayStart <= baseHeight) weekdayStart = 0;
+    if (normalizedWeekdayStart <= lineHeight * 2 || addedStatusHeight === 0) weekdayStart = 0;
     else {
       // every new day inside a history entry will stack and add to its starting point
       // so we need to consider it by substracting the base of this specific day
@@ -35,7 +35,7 @@ function createWeekdayStartDivs(
       display: block; 
       position: relative; 
       bottom: ${weekdayStart}px;
-      border-bottom: dashed 3px var(--border-color);
+      border-bottom: dashed 2px var(--border-color);
       font-style: italic;
     `;
 
@@ -142,7 +142,7 @@ export function constructHistoryEntry(
   // FULL ELEMENTS
   const weekdayDivs = !dayChange
     ? ""
-    : createWeekdayStartDivs(dayChange, normalizedStatusHeight, baseHeight);
+    : createWeekdayStartDivs(dayChange, normalizedStatusHeight, addedStatusHeight);
 
   historyEntryElement.innerHTML = `
   <div style="${containerStyle}">
@@ -173,7 +173,7 @@ export function constructLastEntry(
   border-left: 8px solid ${statusColor};
   `;
   const lastEntryTextStyle = `
-  border-bottom: dashed 3px var(--border-color);
+  border-bottom: dashed 2px var(--border-color);
   `;
 
   lastEntryElement.innerHTML = `
