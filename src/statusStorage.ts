@@ -16,7 +16,7 @@ type HistoryEntry = {
   dateOfChange: Date;
 };
 
-type History = {
+type HistoryStorage = {
   lastStatus: Status;
   history: HistoryEntry[];
 };
@@ -38,13 +38,13 @@ let fullStatus: FullStatus = {
   sun: { sunrise: new Date(), sunset: new Date() },
 };
 
-async function getHistory(): Promise<History | undefined> {
+async function getHistory(): Promise<HistoryStorage | undefined> {
   const filePath = path.resolve(__dirname, "..", storageFileName);
   try {
-    // for app to work, a least empty file should exist, so don't forget to create it before first build
+    // for app to work, at least empty file should exist, so don't forget to create it before first build
     const historyString: string = await readFile(filePath, "utf-8");
 
-    const historyObject: History = JSON.parse(historyString || "{}");
+    const historyObject: HistoryStorage = JSON.parse(historyString || "{}");
 
     if (!historyObject.lastStatus)
       historyObject.lastStatus = { status: false, checkDate: new Date() };
@@ -57,7 +57,7 @@ async function getHistory(): Promise<History | undefined> {
   }
 }
 
-async function setHistory(history: History): Promise<void> {
+async function setHistory(history: HistoryStorage): Promise<void> {
   const filePath = path.resolve(__dirname, "..", storageFileName);
   try {
     const historyString = JSON.stringify(history);
@@ -68,21 +68,21 @@ async function setHistory(history: History): Promise<void> {
   }
 }
 
-async function updateHistory(
+async function createNewHistoryStorage(
   status: Status,
   newStatus: boolean = false,
   retryMinsToFalse: number = 3,
-): Promise<History | undefined> {
-  const history = await getHistory();
-  if (!history) return;
+): Promise<HistoryStorage | undefined> {
+  const historyStorage = await getHistory();
+  if (!historyStorage) return;
 
-  if (!newStatus) history.lastStatus = status;
+  if (!newStatus) historyStorage.lastStatus = status;
   else {
     const newEnergyStatus = status.status;
 
     if (newEnergyStatus === true) {
-      // if evergy appeared, we don't do retries, so we set date as is
-      history.history.unshift({
+      // if energy appeared, we don't do retries, so we set date as is
+      historyStorage.history.unshift({
         changedToStatus: newEnergyStatus,
         dateOfChange: status.checkDate,
       });
@@ -94,29 +94,34 @@ async function updateHistory(
         return new Date(dateMilisecondsNumber - minutesMillisecondsNumber);
       }
 
-      history.history.unshift({
+      historyStorage.history.unshift({
         changedToStatus: newEnergyStatus,
         dateOfChange: substractMinutes(status.checkDate, retryMinsToFalse),
       });
     }
 
-    // _lastStatus_ we keep as is either way, because it's last available information about the connection status, not the info about last status change, which we want to keep in history
-    history.lastStatus = status;
+    // _lastStatus_ we keep the last version either way, because it's last available information about the connection status, not the info about last status change, which we were modifying to keep in history
+    historyStorage.lastStatus = status;
   }
 
-  await setHistory(history);
+  // await setHistory(historyStorage);
+  return historyStorage;
+}
+
+async function updateHistory(newHistoryStorage: HistoryStorage): Promise<void> {
+  await setHistory(newHistoryStorage);
 }
 
 // to be able to get the new history, we need to run this only after awaiting _updateHistory()_
-async function updateFullStatus(freshStatus: Status, newStatus: Boolean = false): Promise<void> {
+function updateFullStatus(
+  freshStatus: Status,
+  newHistoryStorage: boolean | HistoryStorage = false,
+): void {
   fullStatus.lastCheckStatus = freshStatus.status;
   fullStatus.lastCheckDate = freshStatus.checkDate;
-  if (newStatus) {
+  if (typeof newHistoryStorage !== "boolean") {
     fullStatus.status = freshStatus.status;
-    const newHistory = await getHistory();
-    if (!newHistory) return;
-
-    fullStatus.history = newHistory.history;
+    fullStatus.history = newHistoryStorage.history;
   }
 }
 
@@ -132,4 +137,4 @@ async function setFullStatusFromHistory(): Promise<void> {
 
 export default fullStatus;
 
-export { updateHistory, updateFullStatus, setFullStatusFromHistory };
+export { createNewHistoryStorage, updateFullStatus, updateHistory, setFullStatusFromHistory };

@@ -1,5 +1,10 @@
 import suncalc from "suncalc";
-import fullStatus, { updateHistory, Status, updateFullStatus } from "./statusStorage.js";
+import fullStatus, {
+  updateHistory,
+  Status,
+  updateFullStatus,
+  createNewHistoryStorage,
+} from "./statusStorage.js";
 
 const url = process.env.HOME_URL;
 
@@ -27,7 +32,7 @@ async function checkStatus(): Promise<Status> {
 let errorCounter: number = 0;
 let lastSunCheckHourCache: number = NaN;
 
-export default async function updateStatus() {
+export default async function updateStatus(): Promise<void> {
   const freshStatus = await checkStatus();
 
   if (lastSunCheckHourCache !== new Date().getHours()) {
@@ -38,22 +43,26 @@ export default async function updateStatus() {
   }
 
   if (fullStatus.status === freshStatus.status) {
-    await updateHistory(freshStatus);
-    await updateFullStatus(freshStatus);
+    const newHistoryStorage = await createNewHistoryStorage(freshStatus);
+    if (!newHistoryStorage) return;
+    await updateHistory(newHistoryStorage);
+    updateFullStatus(freshStatus);
     errorCounter = 0;
   } else {
     if (freshStatus.status === false) {
       errorCounter++;
       if (errorCounter === 3) {
-        await updateHistory(freshStatus, true);
-        await updateFullStatus(freshStatus, true);
+        const newHistoryStorage = await createNewHistoryStorage(freshStatus, true);
+        if (!newHistoryStorage) return;
+        await updateHistory(newHistoryStorage);
+        updateFullStatus(freshStatus, newHistoryStorage);
         errorCounter = 0;
-      }
-
-      updateFullStatus(freshStatus);
+      } else updateFullStatus(freshStatus);
     } else {
-      await updateHistory(freshStatus, true);
-      await updateFullStatus(freshStatus, true);
+      const newHistoryStorage = await createNewHistoryStorage(freshStatus, true);
+      if (!newHistoryStorage) return;
+      await updateHistory(newHistoryStorage);
+      updateFullStatus(freshStatus, newHistoryStorage);
     }
   }
 }
