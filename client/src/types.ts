@@ -27,12 +27,19 @@ export type HistoryEntryContent = {
   // infro for the last entry (from the start of the day) by chance if this entry will be last
   ifLastEntry: { lastEntryHeight: number; lastEntryText: string };
 };
-
+export type OldHistoryEntryText = {
+  howManyDaysAgo: string;
+  timeAndDate: string;
+};
+export type OldHistoryEntryContent = {
+  lastStatus: boolean;
+  lastStatusChangeDateText: OldHistoryEntryText;
+};
 export type CurrentStatusContent = {
   statusText: string;
   formattedDateText: string;
   statusPrediction: string;
-  history: HistoryEntryContent[];
+  history: HistoryEntryContent[] | OldHistoryEntryContent;
 };
 
 export type MillisecondsPassed = number;

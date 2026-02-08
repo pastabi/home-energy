@@ -5,10 +5,12 @@ import type {
   HistoryEntry,
   HistoryEntryContent,
   MillisecondsPassed,
+  OldHistoryEntryContent,
 } from "./types";
 import {
   arrayOfTextForWeekdays,
   generateArrayOfDaysStartTimestamps,
+  textForTimeAndDate,
   textForWeekday,
   toHoursAndMinutes,
   toTimeOfDay,
@@ -57,93 +59,109 @@ function constructHistoryContentArray(): void {
   const daysStartTexts = arrayOfTextForWeekdays(daysStartTimestamps);
 
   const coef = 4; // x minutes = 1px of height
+  const maxHistoryReturnLength = 1000 * 60 * 60 * 24 * 7; // 7 days
 
-  let historyContent: HistoryEntryContent[] = currentStatus.history.map(
-    (entry: HistoryEntry, entryIndex: number, rawHistory): HistoryEntryContent => {
-      const { changedToStatus, dateOfChange } = entry;
-      let previousEntryDate =
-        entryIndex > 0 ? rawHistory.at(entryIndex - 1)?.dateOfChange || "" : "";
+  let historyContent: HistoryEntryContent[] | OldHistoryEntryContent = [];
 
-      const content: HistoryEntryContent = {
-        statusDuration: { durationText: "", statusHeight: 0 },
-        dayChange: [],
-        thisStatus: { toStatus: changedToStatus, timeText: "", statusISOTime: "" },
-        ifLastEntry: { lastEntryHeight: 0, lastEntryText: "" },
-      };
+  if (
+    currentStatus.history.length === 1 &&
+    new Date(currentStatus.history.at(0)!.dateOfChange).getTime() <
+      Date.now() - maxHistoryReturnLength
+  ) {
+    historyContent = {
+      lastStatus: currentStatus.history.at(0)!.changedToStatus,
+      lastStatusChangeDateText: textForTimeAndDate(
+        new Date(currentStatus.history.at(0)!.dateOfChange).getTime(),
+      ),
+    };
+  } else {
+    historyContent = currentStatus.history.map(
+      (entry: HistoryEntry, entryIndex: number, rawHistory): HistoryEntryContent => {
+        const { changedToStatus, dateOfChange } = entry;
+        let previousEntryDate =
+          entryIndex > 0 ? rawHistory.at(entryIndex - 1)?.dateOfChange || "" : "";
 
-      // filling dayChange
-      for (let i = 0; i < daysStartTimestamps.length; i++) {
-        if (
-          (!previousEntryDate &&
-            isAfter(new Date(daysStartTimestamps[i]), new Date(dateOfChange))) ||
-          (isAfter(new Date(daysStartTimestamps[i]), new Date(dateOfChange)) &&
-            isAfter(new Date(previousEntryDate), new Date(daysStartTimestamps[i])))
-        ) {
-          const timestampsDifference = daysStartTimestamps[i] - new Date(dateOfChange).getTime();
-          const height = timestampsDifference / 1000 / 60 / coef;
-          const text = daysStartTexts[i];
-          if (Array.isArray(content.dayChange)) {
-            content.dayChange.push({
-              dayStartHeight: height,
-              weekdayText: text,
-              weekdayISOTime: new Date(daysStartTimestamps[i]).toISOString(),
-            });
-          }
-          continue;
-        } else if (
-          isAfter(new Date(previousEntryDate), new Date(daysStartTimestamps[i])) &&
-          isAfter(new Date(dateOfChange), new Date(daysStartTimestamps[i]))
-        ) {
-          if (Array.isArray(content.dayChange) && content.dayChange.length === 0)
-            content.dayChange = false;
-          break;
-        } else if (
-          // condition for these entries, who may got in the last available day
-          isAfter(new Date(daysStartTimestamps[i]), new Date(dateOfChange)) &&
-          !daysStartTimestamps.at(i + 2)
-        ) {
-          const lastDayStartTimestamp = daysStartTimestamps.at(i + 1);
-          // check if the entry really after the start of the last day and before start of the one before last
-          if (isAfter(new Date(dateOfChange), new Date(lastDayStartTimestamp || Date.now()))) {
-            content.dayChange = false;
-          } else {
-            // just giving this value for future filtering based on it
-            content.statusDuration.statusHeight = -1;
+        const content: HistoryEntryContent = {
+          statusDuration: { durationText: "", statusHeight: 0 },
+          dayChange: [],
+          thisStatus: { toStatus: changedToStatus, timeText: "", statusISOTime: "" },
+          ifLastEntry: { lastEntryHeight: 0, lastEntryText: "" },
+        };
+
+        // filling dayChange
+        for (let i = 0; i < daysStartTimestamps.length; i++) {
+          if (
+            (!previousEntryDate &&
+              isAfter(new Date(daysStartTimestamps[i]), new Date(dateOfChange))) ||
+            (isAfter(new Date(daysStartTimestamps[i]), new Date(dateOfChange)) &&
+              isAfter(new Date(previousEntryDate), new Date(daysStartTimestamps[i])))
+          ) {
+            const timestampsDifference = daysStartTimestamps[i] - new Date(dateOfChange).getTime();
+            const height = timestampsDifference / 1000 / 60 / coef;
+            const text = daysStartTexts[i];
+            if (Array.isArray(content.dayChange)) {
+              content.dayChange.push({
+                dayStartHeight: height,
+                weekdayText: text,
+                weekdayISOTime: new Date(daysStartTimestamps[i]).toISOString(),
+              });
+            }
+            continue;
+          } else if (
+            isAfter(new Date(previousEntryDate), new Date(daysStartTimestamps[i])) &&
+            isAfter(new Date(dateOfChange), new Date(daysStartTimestamps[i]))
+          ) {
+            if (Array.isArray(content.dayChange) && content.dayChange.length === 0)
+              content.dayChange = false;
+            break;
+          } else if (
+            // condition for these entries, who may got in the last available day
+            isAfter(new Date(daysStartTimestamps[i]), new Date(dateOfChange)) &&
+            !daysStartTimestamps.at(i + 2)
+          ) {
+            const lastDayStartTimestamp = daysStartTimestamps.at(i + 1);
+            // check if the entry really after the start of the last day and before start of the one before last
+            if (isAfter(new Date(dateOfChange), new Date(lastDayStartTimestamp || Date.now()))) {
+              content.dayChange = false;
+            } else {
+              // just giving this value for future filtering based on it
+              content.statusDuration.statusHeight = -1;
+            }
           }
         }
-      }
 
-      // filling statusDuration
-      if (content.statusDuration.statusHeight !== -1) {
-        previousEntryDate = !previousEntryDate ? new Date().toISOString() : previousEntryDate;
-        const timestampsDifference =
-          new Date(previousEntryDate).getTime() - new Date(dateOfChange).getTime();
-        const height = timestampsDifference / 1000 / 60 / coef;
-        const text = toHoursAndMinutes(timestampsDifference);
-        content.statusDuration = { statusHeight: height, durationText: text };
-      }
+        // filling statusDuration
+        if (content.statusDuration.statusHeight !== -1) {
+          previousEntryDate = !previousEntryDate ? new Date().toISOString() : previousEntryDate;
+          const timestampsDifference =
+            new Date(previousEntryDate).getTime() - new Date(dateOfChange).getTime();
+          const height = timestampsDifference / 1000 / 60 / coef;
+          const text = toHoursAndMinutes(timestampsDifference);
+          content.statusDuration = { statusHeight: height, durationText: text };
+        }
 
-      // filling statusChangeText
-      content.thisStatus.timeText = toTimeOfDay(dateOfChange);
-      content.thisStatus.statusISOTime = dateOfChange;
+        // filling statusChangeText
+        content.thisStatus.timeText = toTimeOfDay(dateOfChange);
+        content.thisStatus.statusISOTime = dateOfChange;
 
-      // filling ifLastEntry
-      const dateOfChangeTimestamp: number = new Date(dateOfChange).getTime();
-      const startOfDateTimeStamp = startOfDay(new Date(dateOfChangeTimestamp)).getTime();
-      const lastEntryTimeDiff = dateOfChangeTimestamp - startOfDateTimeStamp;
-      const lastEntryHeight = lastEntryTimeDiff / 1000 / 60 / coef;
-      const lastEntryText = textForWeekday(startOfDateTimeStamp);
+        // filling ifLastEntry
+        const dateOfChangeTimestamp: number = new Date(dateOfChange).getTime();
+        const startOfDateTimeStamp = startOfDay(new Date(dateOfChangeTimestamp)).getTime();
+        const lastEntryTimeDiff = dateOfChangeTimestamp - startOfDateTimeStamp;
+        const lastEntryHeight = lastEntryTimeDiff / 1000 / 60 / coef;
+        const lastEntryText = textForWeekday(startOfDateTimeStamp);
 
-      content.ifLastEntry = { lastEntryHeight, lastEntryText };
+        content.ifLastEntry = { lastEntryHeight, lastEntryText };
 
-      return content;
-    },
-  );
+        return content;
+      },
+    );
 
-  // filtering entries older than week ago (if such were present)
-  historyContent = historyContent.filter(
-    (contentEntry) => contentEntry.statusDuration.statusHeight !== -1,
-  );
+    // filtering entries older than week ago (if such were present)
+    historyContent = historyContent.filter(
+      (contentEntry) => contentEntry.statusDuration.statusHeight !== -1,
+    );
+  }
 
   currentStatusContent.history = historyContent;
 }
@@ -167,9 +185,13 @@ export function updateLastCheckDate(): void {
     hour: "2-digit",
     minute: "2-digit",
   });
-
+  let timePassed;
   const secondsPassed = Math.floor(millisecondsPassed / 1000);
-  const lastCheckString = `Остання перевірка була ${secondsPassed} cек назад (о ${formattedDate})`;
+
+  if (secondsPassed <= 120) timePassed = `${secondsPassed} сек`;
+  else timePassed = `${Math.floor(secondsPassed / 60)} хв`;
+
+  const lastCheckString = `Остання перевірка була ${timePassed} назад (о ${formattedDate})`;
   currentStatusContent.formattedDateText = lastCheckString;
 }
 
@@ -177,6 +199,7 @@ export function updateLastCheckDate(): void {
 // initialize the data fetch and immidiately update all state based on the new data
 export async function updateStatusData(): Promise<void> {
   const data = await getStatusData();
+  // console.log(data);
   if (!data) return;
   // update current state object
   currentStatus.status = data.status;
@@ -191,11 +214,9 @@ export async function updateStatusData(): Promise<void> {
   currentStatusContent.statusPrediction =
     currentStatus.status && !currentStatus.lastCheckStatus ? "і, мoжливо, світла немає..." : "";
 
-  // keep history data as is, because it will go through a lot of transformation before displaying on screen
-  // so we handle all this transformation in separate function
+  // history data will go through a lot of transformation before displaying on screen
+  // we handle all this transformation in separate function
   constructHistoryContentArray();
-
-  // currentStatusContent.history = currentStatus.history;
 }
 
 // ----- FUNCTIONS ZONE END -----

@@ -27,6 +27,23 @@ export function textForWeekday(timestamp: number): string {
     .join(",");
 }
 
+export function textForTimeAndDate(timestamp: number): {
+  howManyDaysAgo: string;
+  timeAndDate: string;
+} {
+  const oneDay = 1000 * 60 * 60 * 24;
+  const howManyDaysAgo = String(Math.floor((Date.now() - timestamp) / oneDay));
+  const timeAndDate = new Date(timestamp).toLocaleTimeString("uk-UA", {
+    ...options,
+    day: "2-digit",
+    month: "2-digit",
+    weekday: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+  return { howManyDaysAgo, timeAndDate };
+}
+
 export function arrayOfTextForWeekdays(timestamps: number[]): string[] {
   return timestamps.map(textForWeekday);
 }

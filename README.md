@@ -10,13 +10,15 @@
 - [+] **Update HTML metadata** and resolve all accessibility warnings.
 - [+] **Build app into one inline file**
 - [+] **Implement a `setInterval`** to fetch data every minute and add a countdown timer showing the time remaining until the next update.
+- [+] **Handle long time statuses** on frontend, after implementing history limit on backend
 - [ ] **Dynamic Styling:** Once the backend is ready, apply colors representing power status (on/off) and time of day (day/night) based on sunrise/sunset data.
+- [ ] **Create my own Date functions** and compare bunlde size when with date-fns
 - [ ] **Handle maintanance mode** to not fetch every second and handle displayed text accordingly
 - [ ] **Documentation & Links:** Create a GitHub README with setup instructions and add buttons on the page linking to my personal website and the repository.
 
 ### Backend
 
-- [ ] **Limit history results** to a maximum of one week (or at least the most recent record).
+- [+] **Limit history results** to a maximum of one week (or at least the most recent record).
 - [+] **Secure the router:** Disable Wi-Fi and WPS to ensure the device only accepts connections via Ethernet.
 - [+] **Add security middleware** and compression
 - [+] **Rewrite updateStatus function** so it will construct new history array only one time and feed it into updateHistory and update full status.

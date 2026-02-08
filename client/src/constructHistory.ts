@@ -1,4 +1,4 @@
-import type { HistoryEntryContent, WeekdayContent } from "./types";
+import type { HistoryEntryContent, OldHistoryEntryContent, WeekdayContent } from "./types";
 
 // base is 24px = 1.5, specified value for line-height in root style
 const lineHeight = parseFloat(window.getComputedStyle(document.documentElement).lineHeight);
@@ -167,19 +167,43 @@ export function constructLastEntry(
   const statusColor = !toStatus ? ligthColor : darkColor;
 
   const lastEntryContainerStyle = `
-  position: relative; 
-  padding-top: ${normalizedLastEntryHeight - lineHeight}px; 
-  padding-left: 8px;
-  border-left: 8px solid ${statusColor};
+    position: relative; 
+    padding-top: ${normalizedLastEntryHeight - lineHeight}px; 
+    padding-left: 8px;
+    border-left: 8px solid ${statusColor};
   `;
   const lastEntryTextStyle = `
-  border-bottom: dashed 2px var(--border-color);
+    border-bottom: dashed 2px var(--border-color);
   `;
 
   lastEntryElement.innerHTML = `
   <div style="${lastEntryContainerStyle}">
-  <p style="${lastEntryTextStyle}">${lastEntryText}</p>
+    <p style="${lastEntryTextStyle}">${lastEntryText}</p>
   </div>`;
 
   return lastEntryElement;
+}
+
+export function constructOldEntry(
+  historyEntryElement: HTMLLIElement,
+  oldHistoryEntry: OldHistoryEntryContent,
+): HTMLLIElement {
+  const {
+    lastStatus,
+    lastStatusChangeDateText: { howManyDaysAgo, timeAndDate },
+  } = oldHistoryEntry;
+
+  const oldHisoryEntryStyle = `
+    text-align: center;
+    font-weight: bold;
+  `;
+  const oldHisoryEntryText = `
+  ${lastStatus ? "Cвітло є вже " : "Світла немає вже "}${howManyDaysAgo} дн поспіль, починаючи з ${timeAndDate}
+  `;
+
+  historyEntryElement.innerHTML = `
+  <p style="${oldHisoryEntryStyle}">${oldHisoryEntryText}</p>
+  `;
+
+  return historyEntryElement;
 }
