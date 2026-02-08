@@ -11,7 +11,7 @@
 - [+] **Build app into one inline file**
 - [+] **Implement a `setInterval`** to fetch data every minute and add a countdown timer showing the time remaining until the next update.
 - [ ] **Dynamic Styling:** Once the backend is ready, apply colors representing power status (on/off) and time of day (day/night) based on sunrise/sunset data.
-- [ ] **Documentation & Links:** Create a GitHub README with setup instructions and add buttons on the page linking to your personal website and the repository.
+- [ ] **Documentation & Links:** Create a GitHub README with setup instructions and add buttons on the page linking to my personal website and the repository.
 
 ### Backend
 

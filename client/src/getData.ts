@@ -98,11 +98,18 @@ function constructHistoryContentArray(): void {
             content.dayChange = false;
           break;
         } else if (
+          // condition for these entries, who may got in the last available day
           isAfter(new Date(daysStartTimestamps[i]), new Date(dateOfChange)) &&
-          !daysStartTimestamps.at(i + 1)
+          !daysStartTimestamps.at(i + 2)
         ) {
-          // just giving this value for future filtering based on it
-          content.statusDuration.statusHeight = -1;
+          const lastDayStartTimestamp = daysStartTimestamps.at(i + 1);
+          // check if the entry really after the start of the last day and before start of the one before last
+          if (isAfter(new Date(dateOfChange), new Date(lastDayStartTimestamp || Date.now()))) {
+            content.dayChange = false;
+          } else {
+            // just giving this value for future filtering based on it
+            content.statusDuration.statusHeight = -1;
+          }
         }
       }
 

@@ -2,7 +2,7 @@ import { startOfDay } from "date-fns";
 
 const options = { timeZone: "Europe/Kyiv" };
 
-export function generateArrayOfDaysStartTimestamps(numberOfDays: number = 6): number[] {
+export function generateArrayOfDaysStartTimestamps(numberOfDays: number = 7): number[] {
   const startOfToday = startOfDay(new Date()).getTime();
   const oneDay = 1000 * 60 * 60 * 24;
   let daysStarts = [];
