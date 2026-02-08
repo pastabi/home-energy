@@ -1,3 +1,4 @@
+import suncalc from "suncalc";
 import fullStatus, { updateHistory, Status, updateFullStatus } from "./statusStorage.js";
 
 const url = process.env.HOME_URL;
@@ -23,10 +24,18 @@ async function checkStatus(): Promise<Status> {
   }
 }
 
-let errorCounter = 0;
+let errorCounter: number = 0;
+let lastSunCheckHourCache: number = NaN;
 
 export default async function updateStatus() {
   const freshStatus = await checkStatus();
+
+  if (lastSunCheckHourCache !== new Date().getHours()) {
+    const times = suncalc.getTimes(new Date(), Number(process.env.LAT), Number(process.env.LONG));
+    fullStatus.sun.sunrise = times.sunrise;
+    fullStatus.sun.sunset = times.sunset;
+    lastSunCheckHourCache = new Date().getHours();
+  }
 
   if (fullStatus.status === freshStatus.status) {
     await updateHistory(freshStatus);
