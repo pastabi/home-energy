@@ -112,7 +112,23 @@ async function updateHistory(newHistoryStorage: HistoryStorage): Promise<void> {
   await setHistory(newHistoryStorage);
 }
 
-// to be able to get the new history, we need to run this only after awaiting _updateHistory()_
+function filterOldHistoryEntries(historyArray: HistoryEntry[]): HistoryEntry[] {
+  // storing maximum of 7 days of history in the data we will return
+  const maxHistoryReturnLength = 1000 * 60 * 60 * 24 * 7; // 7 days
+  const theLastAcceptableHistoryEntryTimestamp = Date.now() - maxHistoryReturnLength;
+
+  let filteredHistoryArray = historyArray.filter(
+    (entry) => new Date(entry.dateOfChange).getTime() >= theLastAcceptableHistoryEntryTimestamp,
+  );
+
+  if (filteredHistoryArray.length === 0) {
+    const lastEntry = historyArray.shift();
+    if (lastEntry) filteredHistoryArray.push(lastEntry);
+  }
+
+  return filteredHistoryArray;
+}
+
 function updateFullStatus(
   freshStatus: Status,
   newHistoryStorage: boolean | HistoryStorage = false,
@@ -121,18 +137,18 @@ function updateFullStatus(
   fullStatus.lastCheckDate = freshStatus.checkDate;
   if (typeof newHistoryStorage !== "boolean") {
     fullStatus.status = freshStatus.status;
-    fullStatus.history = newHistoryStorage.history;
+    fullStatus.history = filterOldHistoryEntries(newHistoryStorage.history);
   }
 }
 
 async function setFullStatusFromHistory(): Promise<void> {
-  const history = await getHistory();
-  if (!history) return;
+  const historyStorage = await getHistory();
+  if (!historyStorage) return;
 
-  fullStatus.status = history.lastStatus.status;
-  fullStatus.lastCheckDate = history.lastStatus.checkDate;
-  fullStatus.lastCheckStatus = history.lastStatus.status;
-  fullStatus.history = history.history;
+  fullStatus.status = historyStorage.lastStatus.status;
+  fullStatus.lastCheckDate = historyStorage.lastStatus.checkDate;
+  fullStatus.lastCheckStatus = historyStorage.lastStatus.status;
+  fullStatus.history = filterOldHistoryEntries(historyStorage.history);
 }
 
 export default fullStatus;
