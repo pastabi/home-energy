@@ -1,3 +1,4 @@
+import suncalc from "suncalc";
 import path from "path";
 import { readFile, writeFile } from "fs/promises";
 import { fileURLToPath } from "url";
@@ -37,6 +38,12 @@ let fullStatus: FullStatus = {
   history: [],
   sun: { sunrise: new Date(), sunset: new Date() },
 };
+
+function updateSunData() {
+  const times = suncalc.getTimes(new Date(), Number(process.env.LAT), Number(process.env.LONG));
+  fullStatus.sun.sunrise = times.sunrise;
+  fullStatus.sun.sunset = times.sunset;
+}
 
 async function getHistory(): Promise<HistoryStorage | undefined> {
   const filePath = path.resolve(__dirname, "..", storageFileName);
@@ -153,4 +160,10 @@ async function setFullStatusFromHistory(): Promise<void> {
 
 export default fullStatus;
 
-export { createNewHistoryStorage, updateFullStatus, updateHistory, setFullStatusFromHistory };
+export {
+  updateSunData,
+  createNewHistoryStorage,
+  updateFullStatus,
+  updateHistory,
+  setFullStatusFromHistory,
+};

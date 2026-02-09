@@ -6,12 +6,13 @@ import "dotenv/config";
 import path from "path";
 
 import updateStatus from "./monitor.js";
-import fullStatus, { setFullStatusFromHistory } from "./statusStorage.js";
+import fullStatus, { setFullStatusFromHistory, updateSunData } from "./statusStorage.js";
 
 const app = express();
 
 // retrieves status from file to get something to show before the first check
 await setFullStatusFromHistory();
+updateSunData();
 // console.log(fullStatus);
 
 setInterval(async () => {
