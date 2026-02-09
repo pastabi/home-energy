@@ -11,7 +11,7 @@
 - [+] **Build app into one inline file**
 - [+] **Implement a `setInterval`** to fetch data every minute and add a countdown timer showing the time remaining until the next update.
 - [+] **Handle long time statuses** on frontend, after implementing history limit on backend
-- [ ] **Dynamic Styling:** Once the backend is ready, apply colors representing power status (on/off) and time of day (day/night) based on sunrise/sunset data.
+- [+] **Dynamic Styling:** Once the backend is ready, apply colors representing power status (on/off) and time of day (day/night) based on sunrise/sunset data.
 - [ ] **Create my own Date functions** and compare bunlde size when with date-fns
 - [ ] **Handle maintanance mode** to not fetch every second and handle displayed text accordingly
 - [ ] **Documentation & Links:** Create a GitHub README with setup instructions and add buttons on the page linking to my personal website and the repository.

@@ -1,4 +1,4 @@
-import { isAfter, startOfDay } from "date-fns";
+import { isAfter, isSameDay, startOfDay } from "date-fns";
 import type {
   CurrentStatus,
   CurrentStatusContent,
@@ -22,6 +22,7 @@ export const currentStatus: CurrentStatus = {
   lastCheckDate: "",
   lastCheckStatus: false,
   history: [],
+  sun: { sunrise: "", sunset: "" },
 };
 
 export const currentStatusContent: CurrentStatusContent = {
@@ -75,6 +76,9 @@ function constructHistoryContentArray(): void {
       ),
     };
   } else {
+    let previousEntry: HistoryEntryContent | undefined;
+    let allowAllLastDay: boolean = false;
+
     historyContent = currentStatus.history.map(
       (entry: HistoryEntry, entryIndex: number, rawHistory): HistoryEntryContent => {
         const { changedToStatus, dateOfChange } = entry;
@@ -120,13 +124,29 @@ function constructHistoryContentArray(): void {
             !daysStartTimestamps.at(i + 2)
           ) {
             const lastDayStartTimestamp = daysStartTimestamps.at(i + 1);
-            // check if the entry really after the start of the last day and before start of the one before last
-            if (isAfter(new Date(dateOfChange), new Date(lastDayStartTimestamp || Date.now()))) {
+
+            if (allowAllLastDay) {
               content.dayChange = false;
+            } else if (
+              // check if the entry really after the start of the last day and before start of the one before last
+              isAfter(new Date(dateOfChange), new Date(lastDayStartTimestamp || Date.now()))
+            ) {
+              content.dayChange = false;
+            } else if (
+              // to handle situatioins when some near last entry has many day changes in it
+              // so we "allow" all entries from that day that were send to show off, to not cut them
+              previousEntry &&
+              Array.isArray(previousEntry.dayChange) &&
+              previousEntry.dayChange.length > 1 &&
+              isSameDay(new Date(previousEntry.thisStatus.statusISOTime), new Date(dateOfChange))
+            ) {
+              content.dayChange = false;
+              allowAllLastDay = true;
             } else {
               // just giving this value for future filtering based on it
               content.statusDuration.statusHeight = -1;
             }
+            break;
           }
         }
 
@@ -153,10 +173,13 @@ function constructHistoryContentArray(): void {
 
         content.ifLastEntry = { lastEntryHeight, lastEntryText };
 
+        previousEntry = content;
         return content;
       },
     );
 
+    previousEntry = undefined;
+    allowAllLastDay = false;
     // filtering entries older than week ago (if such were present)
     historyContent = historyContent.filter(
       (contentEntry) => contentEntry.statusDuration.statusHeight !== -1,
@@ -207,6 +230,7 @@ export async function updateStatusData(): Promise<void> {
   currentStatus.lastCheckStatus = data.lastCheckStatus;
   // currentStatus.lastCheckStatus = false;
   currentStatus.history = data.history;
+  currentStatus.sun = data.sun;
 
   // update text object based on the current state and milliseconds passed, which will be used by update screen functions
   currentStatusContent.statusText = currentStatus.status ? "Світло є" : "Світла нема";

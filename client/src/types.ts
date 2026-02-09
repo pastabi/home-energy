@@ -8,6 +8,7 @@ export type CurrentStatus = {
   lastCheckDate: string;
   lastCheckStatus: boolean;
   history: HistoryEntry[];
+  sun: { sunrise: string; sunset: string };
 };
 
 export type WeekdayContent = {

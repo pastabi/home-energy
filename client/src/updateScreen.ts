@@ -1,4 +1,4 @@
-import { currentStatusContent } from "./getData";
+import { currentStatus, currentStatusContent } from "./getData";
 import { constructHistoryEntry, constructLastEntry, constructOldEntry } from "./constructHistory";
 
 const statusElement = document.querySelector<HTMLHeadingElement>(".status-info")!;
@@ -8,9 +8,29 @@ const predictionTextElement = document.querySelector<HTMLParagraphElement>(".sta
 
 let lastHistoryHash = "";
 
+function updateColors() {
+  const sunData = currentStatus.sun;
+  const htmlElement = document.documentElement;
+  const statusContainerElement = document.querySelector<HTMLDivElement>(".status-container")!;
+
+  if (sunData.sunrise === "") return;
+
+  if (
+    Date.now() < new Date(sunData.sunrise).getTime() ||
+    Date.now() > new Date(sunData.sunset).getTime()
+  )
+    htmlElement.setAttribute("data-theme", "night");
+  else htmlElement.setAttribute("data-theme", "day");
+
+  if (currentStatus.status) statusContainerElement.setAttribute("data-status", "true");
+  else statusContainerElement.setAttribute("data-status", "false");
+}
+
 // called every minute
 // updates elements on the screen based on new state
 export function updateStatusOnScreen() {
+  updateColors();
+
   // status block
   statusElement.textContent = currentStatusContent.statusText;
   statusCheckDateElement.textContent = currentStatusContent.formattedDateText;

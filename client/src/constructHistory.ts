@@ -3,8 +3,8 @@ import type { HistoryEntryContent, OldHistoryEntryContent, WeekdayContent } from
 // base is 24px = 1.5, specified value for line-height in root style
 const lineHeight = parseFloat(window.getComputedStyle(document.documentElement).lineHeight);
 // for now colors are here, but will be moved to another file later
-const ligthColor = "rgb(255, 240, 128)";
-const darkColor = "rgb(33, 53, 71)";
+const ligthColor = "var(--light)";
+const darkColor = "var(--background)";
 
 function createWeekdayStartDivs(
   weekdays: WeekdayContent[],
@@ -35,12 +35,11 @@ function createWeekdayStartDivs(
       display: block; 
       position: relative; 
       bottom: ${weekdayStart}px;
-      border-bottom: dashed 2px var(--border-color);
       font-style: italic;
     `;
 
     return prev.concat(
-      `<time datetime="${weekdayISOTime}" style="${weekdayStyle}">${weekdayText}</time>`,
+      `<time datetime="${weekdayISOTime}" style="${weekdayStyle}" class="weekday">${weekdayText}</time>`,
     );
   }, "");
 
@@ -193,9 +192,13 @@ export function constructOldEntry(
     lastStatusChangeDateText: { howManyDaysAgo, timeAndDate },
   } = oldHistoryEntry;
 
+  const statusColor = lastStatus ? ligthColor : darkColor;
+
   const oldHisoryEntryStyle = `
     text-align: center;
     font-weight: bold;
+    padding-left: 8px;
+    border-left: 8px solid ${statusColor};
   `;
   const oldHisoryEntryText = `
   ${lastStatus ? "Cвітло є вже " : "Світла немає вже "}${howManyDaysAgo} дн поспіль, починаючи з ${timeAndDate}
