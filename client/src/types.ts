@@ -9,6 +9,7 @@ export type CurrentStatus = {
   lastCheckStatus: boolean;
   history: HistoryEntry[];
   sun: { sunrise: string; sunset: string };
+  maintenance: boolean;
 };
 
 export type WeekdayContent = {
@@ -41,6 +42,7 @@ export type CurrentStatusContent = {
   formattedDateText: string;
   statusPrediction: string;
   history: HistoryEntryContent[] | OldHistoryEntryContent;
+  messageText: string;
 };
 
 export type MillisecondsPassed = number;

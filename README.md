@@ -13,7 +13,8 @@
 - [+] **Handle long time statuses** on frontend, after implementing history limit on backend
 - [+] **Dynamic Styling:** Once the backend is ready, apply colors representing power status (on/off) and time of day (day/night) based on sunrise/sunset data.
 - [+] **Create my own Date functions** and compare bunlde size when with date-fns
-- [ ] **Handle maintanance mode** and errors, to not fetch every second and handle displayed text accordingly
+- [+] **Handle maintanance mode** and errors, to not fetch every second and handle displayed text accordingly
+- [ ] **Optimize and inline manifest images** to make the whole app always to be the one file under 14KB
 - [ ] **Documentation & Links:** Create a GitHub README with setup instructions and add buttons on the page linking to my personal website and the repository.
 
 ### Backend
@@ -26,4 +27,5 @@
 - [+] **Add meintanance mode** functionality and routes.
 - [ ] **Integrate a Telegram bot** for notifications.
 - [ ] **Implement log rotation:** Save storage files monthly; concatenate the last two months of history to ensure seamless data transitions at the start of a new month.
+- [ ] **Add HTML template** for maintenance and items deletion call results
 - [ ] **Add history items deletion from url**, to be able to delete wrong statuses when have no access to server.

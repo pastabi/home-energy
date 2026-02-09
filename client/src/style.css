@@ -86,9 +86,9 @@ h1 {
 .status-last-check {
   font-weight: bold;
 }
-.status-prediction {
+.message {
   font-style: italic;
-  height: 1.5rem;
+  min-height: 1.5rem;
 }
 
 .history-container {

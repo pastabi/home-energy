@@ -4,7 +4,7 @@ import { constructHistoryEntry, constructLastEntry, constructOldEntry } from "./
 const statusElement = document.querySelector<HTMLHeadingElement>(".status-info")!;
 const statusCheckDateElement = document.querySelector<HTMLHeadingElement>(".status-last-check")!;
 const historyListElement = document.querySelector<HTMLUListElement>(".history-list")!;
-const predictionTextElement = document.querySelector<HTMLParagraphElement>(".status-prediction")!;
+const messageTextElement = document.querySelector<HTMLParagraphElement>(".message")!;
 
 let lastHistoryHash = "";
 
@@ -34,7 +34,10 @@ export function updateStatusOnScreen() {
   // status block
   statusElement.textContent = currentStatusContent.statusText;
   statusCheckDateElement.textContent = currentStatusContent.formattedDateText;
-  predictionTextElement.textContent = currentStatusContent.statusPrediction;
+  let messageText: string;
+  if (currentStatusContent.messageText.length > 0) messageText = currentStatusContent.messageText;
+  else messageText = currentStatusContent.statusPrediction;
+  messageTextElement.textContent = messageText;
 
   // history block
   // as we call this function every second, we will check, if anything change in history

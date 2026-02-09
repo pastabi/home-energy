@@ -1,5 +1,10 @@
 import "./style.css";
-import { millisecondsPassed, updateLastCheckDate, updateStatusData } from "./getData";
+import {
+  currentStatus,
+  millisecondsPassed,
+  updateLastCheckDate,
+  updateStatusData,
+} from "./getData";
 import { updateStatusOnScreen } from "./updateScreen";
 
 // show default text
@@ -8,11 +13,21 @@ updateStatusOnScreen();
 await updateStatusData();
 updateStatusOnScreen();
 
+let secondsPassedSinceLastTry = 0;
+
 // set up interval to show how many seconds passed since last check and fetch updated data every 60 seconds
-setInterval(async () => {
+setInterval(() => {
   updateLastCheckDate();
   updateStatusOnScreen();
   if (millisecondsPassed > 60000) {
-    updateStatusData();
+    if (!currentStatus.maintenance) {
+      updateStatusData();
+    } else {
+      secondsPassedSinceLastTry++;
+      if (secondsPassedSinceLastTry >= 60) {
+        updateStatusData();
+        secondsPassedSinceLastTry = 0;
+      }
+    }
   }
 }, 1000);

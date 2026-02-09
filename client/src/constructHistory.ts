@@ -172,7 +172,7 @@ export function constructLastEntry(
     border-left: 8px solid ${statusColor};
   `;
   const lastEntryTextStyle = `
-    border-bottom: dashed 2px var(--border-color);
+    border-bottom: dashed 2px var(--border);
   `;
 
   lastEntryElement.innerHTML = `

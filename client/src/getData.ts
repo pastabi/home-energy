@@ -25,6 +25,7 @@ export const currentStatus: CurrentStatus = {
   lastCheckStatus: false,
   history: [],
   sun: { sunrise: "", sunset: "" },
+  maintenance: false,
 };
 
 export const currentStatusContent: CurrentStatusContent = {
@@ -32,6 +33,7 @@ export const currentStatusContent: CurrentStatusContent = {
   formattedDateText: "Остання перевірка була __ cек назад (о __:__)",
   statusPrediction: "",
   history: [],
+  messageText: "",
 };
 
 export let millisecondsPassed: MillisecondsPassed = 0;
@@ -45,14 +47,18 @@ async function getStatusData(): Promise<CurrentStatus | undefined> {
   try {
     const response = await fetch(apiUrl);
 
+    if (response.status === 429)
+      throw new Error(`Забагато запитів. Охолодіть свій пил та спробуйте через 10 хвилин.`);
     if (!response.ok) {
-      throw new Error(`Energy status request failed. Status: ${response.status}`);
+      throw new Error(`Щось пішло не так з запитом до серверу. Статус: ${response.status}`);
     }
     const { fullStatus: data }: { fullStatus: CurrentStatus } = await response.json();
 
     return data;
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    const errorMessage =
+      error instanceof Error ? error.message : "Невідома помилка. Спробуйте пізніше.";
+    currentStatusContent.messageText = errorMessage;
     console.log(errorMessage);
   }
 }
@@ -224,7 +230,7 @@ export function updateLastCheckDate(): void {
 // initialize the data fetch and immidiately update all state based on the new data
 export async function updateStatusData(): Promise<void> {
   const data = await getStatusData();
-  // console.log(data);
+  console.log(data);
   if (!data) return;
   // update current state object
   currentStatus.status = data.status;
@@ -233,12 +239,16 @@ export async function updateStatusData(): Promise<void> {
   // currentStatus.lastCheckStatus = false;
   currentStatus.history = data.history;
   currentStatus.sun = data.sun;
+  currentStatus.maintenance = data.maintenance;
 
   // update text object based on the current state and milliseconds passed, which will be used by update screen functions
   currentStatusContent.statusText = currentStatus.status ? "Світло є" : "Світла нема";
   updateLastCheckDate();
   currentStatusContent.statusPrediction =
     currentStatus.status && !currentStatus.lastCheckStatus ? "і, мoжливо, світла немає..." : "";
+  currentStatusContent.messageText = !currentStatus.maintenance
+    ? ""
+    : "На сервері тривають технічні роботи. Статус світла дома наразі не перевіряється.";
 
   // history data will go through a lot of transformation before displaying on screen
   // we handle all this transformation in separate function
