@@ -22,7 +22,8 @@
 - [+] **Secure the router:** Disable Wi-Fi and WPS to ensure the device only accepts connections via Ethernet.
 - [+] **Add security middleware** and compression
 - [+] **Rewrite updateStatus function** so it will construct new history array only one time and feed it into updateHistory and update full status.
-- [+] **Add sunset and sunrise library** and integrate it in returned data
-- [ ] **Add meintanance mode** functionality and routes
+- [+] **Add sunset and sunrise library** and integrate it in returned data.
+- [+] **Add meintanance mode** functionality and routes.
 - [ ] **Integrate a Telegram bot** for notifications.
 - [ ] **Implement log rotation:** Save storage files monthly; concatenate the last two months of history to ensure seamless data transitions at the start of a new month.
+- [ ] **Add history items deletion from url**, to be able to delete wrong statuses when have no access to server.

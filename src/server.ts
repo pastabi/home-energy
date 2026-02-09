@@ -5,19 +5,15 @@ import rateLimiter from "express-rate-limit";
 import "dotenv/config";
 import path from "path";
 
-import updateStatus from "./monitor.js";
-import fullStatus, { setFullStatusFromHistory, updateSunData } from "./statusStorage.js";
+import { setupMonitoring } from "./monitor.js";
+import fullStatus, { setFullStatusFromHistory } from "./statusStorage.js";
 
 const app = express();
 
 // retrieves status from file to get something to show before the first check
 await setFullStatusFromHistory();
-updateSunData();
+setupMonitoring();
 // console.log(fullStatus);
-
-setInterval(async () => {
-  await updateStatus();
-}, 60000);
 
 // ----- SECURITY HEADERS START -----
 app.use(
@@ -49,6 +45,23 @@ app.use(express.static("./client/dist"));
 
 app.get("/api/v1/status", (req: Request, res: Response) => {
   res.status(200).json({ fullStatus });
+});
+app.get(`/api/v1/maintenance/`, (req: Request, res: Response) => {
+  const userToken = req.query.token as string;
+  const secretToken = process.env.MAINTENANCE_TOKEN;
+
+  if (!secretToken) return res.status(500).send("Для початку треба налаштувати токен на сервері.");
+  if (!userToken || userToken !== secretToken)
+    return res.status(403).send("Неправильний токен. Перевірте токен та спробуйте ще раз.");
+
+  fullStatus.maintenance = !fullStatus.maintenance;
+  setupMonitoring();
+
+  let message: string = "";
+  if (fullStatus.maintenance) message = "Режим технічних робіт активовано.";
+  if (!fullStatus.maintenance)
+    message = "Режим технічних робіт деактивовано, сервер працює в штатному режимі.";
+  res.status(200).send(message);
 });
 app.get("/{*any}", (req: Request, res: Response) => {
   res.status(404).sendFile(path.resolve("./client/dist/index.html"));

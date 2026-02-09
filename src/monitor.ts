@@ -64,3 +64,15 @@ export default async function updateStatus(): Promise<void> {
     }
   }
 }
+
+let intervalId: NodeJS.Timeout;
+export function setupMonitoring() {
+  if (!fullStatus.maintenance) {
+    clearInterval(intervalId);
+    intervalId = setInterval(() => {
+      updateStatus();
+    }, 60000);
+  } else {
+    clearInterval(intervalId);
+  }
+}

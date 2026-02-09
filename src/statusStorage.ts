@@ -28,6 +28,7 @@ type FullStatus = {
   lastCheckStatus: boolean;
   history: HistoryEntry[];
   sun: { sunrise: Date; sunset: Date };
+  maintenance: boolean;
 };
 
 // default value on server start before the last value retrieved from storage
@@ -37,6 +38,7 @@ let fullStatus: FullStatus = {
   lastCheckStatus: false,
   history: [],
   sun: { sunrise: new Date(), sunset: new Date() },
+  maintenance: false,
 };
 
 function updateSunData() {
@@ -165,6 +167,7 @@ async function setFullStatusFromHistory(): Promise<void> {
   fullStatus.lastCheckDate = historyStorage.lastStatus.checkDate;
   fullStatus.lastCheckStatus = historyStorage.lastStatus.status;
   fullStatus.history = filterOldHistoryEntries(historyStorage.history);
+  updateSunData();
 }
 
 export default fullStatus;
