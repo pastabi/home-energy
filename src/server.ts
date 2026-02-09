@@ -27,8 +27,6 @@ app.use(
         "default-src": ["'self'"],
         "script-src": ["'self'", "'unsafe-inline'"],
         "style-src": ["'self'", "'unsafe-inline'"],
-        "manifest-src": ["'self'", "data:"],
-        "img-src": ["'self'", "data:"],
         "connect-src": ["'self'"],
         "frame-ancestors": ["'none'"],
         "upgrade-insecure-requests": [],
