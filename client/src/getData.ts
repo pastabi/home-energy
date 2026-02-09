@@ -1,4 +1,3 @@
-import { isAfter, isSameDay, startOfDay } from "date-fns";
 import type {
   CurrentStatus,
   CurrentStatusContent,
@@ -10,6 +9,9 @@ import type {
 import {
   arrayOfTextForWeekdays,
   generateArrayOfDaysStartTimestamps,
+  myIsAfter,
+  myIsSameDay,
+  myStartOfDay,
   textForTimeAndDate,
   textForWeekday,
   toHoursAndMinutes,
@@ -50,7 +52,7 @@ async function getStatusData(): Promise<CurrentStatus | undefined> {
 
     return data;
   } catch (error) {
-    const errorMessage = error instanceof Error ? console.log(error.message) : "Unknown error";
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
     console.log(errorMessage);
   }
 }
@@ -96,9 +98,9 @@ function constructHistoryContentArray(): void {
         for (let i = 0; i < daysStartTimestamps.length; i++) {
           if (
             (!previousEntryDate &&
-              isAfter(new Date(daysStartTimestamps[i]), new Date(dateOfChange))) ||
-            (isAfter(new Date(daysStartTimestamps[i]), new Date(dateOfChange)) &&
-              isAfter(new Date(previousEntryDate), new Date(daysStartTimestamps[i])))
+              myIsAfter(new Date(daysStartTimestamps[i]), new Date(dateOfChange))) ||
+            (myIsAfter(new Date(daysStartTimestamps[i]), new Date(dateOfChange)) &&
+              myIsAfter(new Date(previousEntryDate), new Date(daysStartTimestamps[i])))
           ) {
             const timestampsDifference = daysStartTimestamps[i] - new Date(dateOfChange).getTime();
             const height = timestampsDifference / 1000 / 60 / coef;
@@ -112,15 +114,15 @@ function constructHistoryContentArray(): void {
             }
             continue;
           } else if (
-            isAfter(new Date(previousEntryDate), new Date(daysStartTimestamps[i])) &&
-            isAfter(new Date(dateOfChange), new Date(daysStartTimestamps[i]))
+            myIsAfter(new Date(previousEntryDate), new Date(daysStartTimestamps[i])) &&
+            myIsAfter(new Date(dateOfChange), new Date(daysStartTimestamps[i]))
           ) {
             if (Array.isArray(content.dayChange) && content.dayChange.length === 0)
               content.dayChange = false;
             break;
           } else if (
             // condition for these entries, who may got in the last available day
-            isAfter(new Date(daysStartTimestamps[i]), new Date(dateOfChange)) &&
+            myIsAfter(new Date(daysStartTimestamps[i]), new Date(dateOfChange)) &&
             !daysStartTimestamps.at(i + 2)
           ) {
             const lastDayStartTimestamp = daysStartTimestamps.at(i + 1);
@@ -129,7 +131,7 @@ function constructHistoryContentArray(): void {
               content.dayChange = false;
             } else if (
               // check if the entry really after the start of the last day and before start of the one before last
-              isAfter(new Date(dateOfChange), new Date(lastDayStartTimestamp || Date.now()))
+              myIsAfter(new Date(dateOfChange), new Date(lastDayStartTimestamp || Date.now()))
             ) {
               content.dayChange = false;
             } else if (
@@ -138,7 +140,7 @@ function constructHistoryContentArray(): void {
               previousEntry &&
               Array.isArray(previousEntry.dayChange) &&
               previousEntry.dayChange.length > 1 &&
-              isSameDay(new Date(previousEntry.thisStatus.statusISOTime), new Date(dateOfChange))
+              myIsSameDay(new Date(previousEntry.thisStatus.statusISOTime), new Date(dateOfChange))
             ) {
               content.dayChange = false;
               allowAllLastDay = true;
@@ -166,7 +168,7 @@ function constructHistoryContentArray(): void {
 
         // filling ifLastEntry
         const dateOfChangeTimestamp: number = new Date(dateOfChange).getTime();
-        const startOfDateTimeStamp = startOfDay(new Date(dateOfChangeTimestamp)).getTime();
+        const startOfDateTimeStamp = myStartOfDay(new Date(dateOfChangeTimestamp)).getTime();
         const lastEntryTimeDiff = dateOfChangeTimestamp - startOfDateTimeStamp;
         const lastEntryHeight = lastEntryTimeDiff / 1000 / 60 / coef;
         const lastEntryText = textForWeekday(startOfDateTimeStamp);

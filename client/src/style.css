@@ -9,7 +9,7 @@
   --text-status: #1f2937;
   --light: #ffeb54;
   --background: #eeeeee;
-  --border-status: #939ba896;
+  --border-status: #939ba8b3;
   --border: #939ba8;
   --some-color: #242424;
 
@@ -23,8 +23,8 @@
   --text-main: #dce0ea;
   --text-status: #111827;
   --light: #ffe62b;
-  --background: #0f172a;
-  --border-status: #2a2e328e;
+  --background: #0b1120;
+  --border-status: #2a2e32ee;
   --border: #33383d;
 }
 
@@ -34,8 +34,9 @@
   box-shadow: none;
 }
 [data-theme="night"] .status-container[data-status="false"] {
-  --light: #0f172a;
+  --light: #0b1120;
   --text-status: #a8acb1d8;
+
   box-shadow: none;
 }
 
@@ -73,9 +74,9 @@ h1 {
   padding: 1.5rem;
   text-align: center;
   border: solid 8px var(--border-status);
-  border-radius: 2px;
+  border-radius: 10px;
   background-color: var(--light);
-  box-shadow: 0 0 40px 10px var(--light);
+  box-shadow: 0 0 20px -6px var(--light);
 }
 .status-info {
   font-size: 3.2rem;

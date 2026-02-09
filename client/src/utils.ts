@@ -1,9 +1,21 @@
-import { startOfDay } from "date-fns";
-
 const options = { timeZone: "Europe/Kyiv" };
 
+export function myStartOfDay(date: Date): Date {
+  const theDateCopy = new Date(date);
+  theDateCopy.setHours(0, 0, 0, 0);
+  return theDateCopy;
+}
+
+export function myIsSameDay(firstDate: Date, secondDate: Date): boolean {
+  return myStartOfDay(firstDate).getTime() === myStartOfDay(secondDate).getTime();
+}
+
+export function myIsAfter(laterDate: Date, earlierDate: Date): boolean {
+  return laterDate.getTime() > earlierDate.getTime();
+}
+
 export function generateArrayOfDaysStartTimestamps(numberOfDays: number = 7): number[] {
-  const startOfToday = startOfDay(new Date()).getTime();
+  const startOfToday = myStartOfDay(new Date()).getTime();
   const oneDay = 1000 * 60 * 60 * 24;
   let daysStarts = [];
   // generate array of timestamps of days' starts for last week

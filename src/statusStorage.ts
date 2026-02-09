@@ -119,13 +119,22 @@ async function updateHistory(newHistoryStorage: HistoryStorage): Promise<void> {
   await setHistory(newHistoryStorage);
 }
 
+function myStartOfDay(date: Date): Date {
+  const theDateCopy = new Date(date);
+  theDateCopy.setHours(0, 0, 0, 0);
+  return theDateCopy;
+}
+
 function filterOldHistoryEntries(historyArray: HistoryEntry[]): HistoryEntry[] {
   // storing maximum of 7 days of history in the data we will return
-  const maxHistoryReturnLength = 1000 * 60 * 60 * 24 * 7; // 7 days
-  const theLastAcceptableHistoryEntryTimestamp = Date.now() - maxHistoryReturnLength;
+  const maxHistoryReturnLength: number = 1000 * 60 * 60 * 24 * 7; // 7 days
+  const theLastAcceptableHistoryEntryTimestamp: number = Date.now() - maxHistoryReturnLength;
+  const startOfLastAcceptableDay: number = myStartOfDay(
+    new Date(theLastAcceptableHistoryEntryTimestamp),
+  ).getTime();
 
   let filteredHistoryArray = historyArray.filter(
-    (entry) => new Date(entry.dateOfChange).getTime() >= theLastAcceptableHistoryEntryTimestamp,
+    (entry) => new Date(entry.dateOfChange).getTime() >= startOfLastAcceptableDay,
   );
 
   if (filteredHistoryArray.length === 0) {

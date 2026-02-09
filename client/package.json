@@ -12,8 +12,5 @@
     "typescript": "~5.9.3",
     "vite": "^7.2.4",
     "vite-plugin-singlefile": "^2.3.0"
-  },
-  "dependencies": {
-    "date-fns": "^4.1.0"
   }
 }
