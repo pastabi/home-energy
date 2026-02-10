@@ -135,7 +135,7 @@ export async function setFullStatusFromHistory(): Promise<void> {
   if (!historyStorage) return;
 
   fullStatus.status = historyStorage.lastStatus.status;
-  fullStatus.lastCheckDate = historyStorage.lastStatus.checkDate;
+  fullStatus.lastCheckDate = new Date(historyStorage.lastStatus.checkDate);
   fullStatus.lastCheckStatus = historyStorage.lastStatus.status;
   fullStatus.history = filterOldHistoryEntries(historyStorage.history);
   updateSunData();

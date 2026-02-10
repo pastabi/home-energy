@@ -25,7 +25,7 @@
 - [x] **Rewrite updateStatus function** so it will construct new history array only one time and feed it into updateHistory and update full status.
 - [x] **Add sunset and sunrise library** and integrate it in returned data.
 - [x] **Add meintanance mode** functionality and routes.
-- [ ] **Integrate a Telegram bot** for notifications.
+- [x] **Integrate a Telegram bot** for notifications.
 - [ ] **Add storage files regular backup** and implement safe file read/write responces, to reduce undefined cases.
 - [ ] **Implement log rotation:** Save storage files monthly; concatenate the last two months of history to ensure seamless data transitions at the start of a new month.
 - [ ] **Add HTML template** for maintenance and items deletion call results.

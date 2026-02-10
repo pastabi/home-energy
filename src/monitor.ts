@@ -1,3 +1,4 @@
+import { notifyAllUsers } from "./services/telegram.js";
 import fullStatus, {
   updateHistory,
   Status,
@@ -35,11 +36,15 @@ let lastSunCheckHourCache: number = NaN;
 export default async function updateStatus(): Promise<void> {
   const freshStatus = await checkStatus();
 
+  // update sun data
   if (lastSunCheckHourCache !== new Date().getHours()) {
     updateSunData();
     lastSunCheckHourCache = new Date().getHours();
   }
 
+  // update file storage
+
+  // update status and history
   if (fullStatus.status === freshStatus.status) {
     const newHistoryStorage = await createNewHistoryStorage(freshStatus);
     if (!newHistoryStorage) return;
@@ -55,12 +60,14 @@ export default async function updateStatus(): Promise<void> {
         await updateHistory(newHistoryStorage);
         updateFullStatus(freshStatus, newHistoryStorage);
         errorCounter = 0;
+        await notifyAllUsers("🔦 | Світло зникло.");
       } else updateFullStatus(freshStatus);
     } else {
       const newHistoryStorage = await createNewHistoryStorage(freshStatus, true);
       if (!newHistoryStorage) return;
       await updateHistory(newHistoryStorage);
       updateFullStatus(freshStatus, newHistoryStorage);
+      await notifyAllUsers("💡 | Світло з'явилось!");
     }
   }
 }

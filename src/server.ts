@@ -7,6 +7,7 @@ import path from "path";
 
 import { setupMonitoring } from "./monitor.js";
 import fullStatus, { setFullStatusFromHistory } from "./statusStorage.js";
+import { telegramBot } from "./services/telegram.js";
 
 const app = express();
 
@@ -23,6 +24,7 @@ app.use(
         "default-src": ["'self'"],
         "script-src": ["'self'", "'unsafe-inline'"],
         "style-src": ["'self'", "'unsafe-inline'"],
+        "img-src": ["'self'", "data:"],
         "connect-src": ["'self'"],
         "frame-ancestors": ["'none'"],
         "upgrade-insecure-requests": [],
@@ -68,4 +70,15 @@ app.get("/{*any}", (req: Request, res: Response) => {
 });
 
 const port = process.env.PORT || 5001;
-app.listen(port, () => console.log(`Server is listening on port: ${port}...`));
+app.listen(port, () => {
+  console.log(`Server is listening on port: ${port}...`);
+  telegramBot
+    .start({
+      onStart: (botInfo) => {
+        console.log(`Telegram bot @${botInfo.username} is running...`);
+      },
+    })
+    .catch((error) => {
+      console.log(`Failed to start Telegram bot:`, error);
+    });
+});

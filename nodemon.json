@@ -1,3 +1,10 @@
 {
-  "ignore": ["client/*", "dist/*", "*.test.ts", "status-history.json", "status-history-test.json"]
+  "ignore": [
+    "client/*",
+    "dist/*",
+    "*.test.ts",
+    "status-history.json",
+    "status-history-test.json",
+    "src/services/telegram-users.json"
+  ]
 }

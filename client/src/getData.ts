@@ -236,7 +236,7 @@ export function updateLastCheckDate(): void {
 // initialize the data fetch and immidiately update all state based on the new data
 export async function updateStatusData(): Promise<void> {
   const data = await getStatusData();
-  console.log(data);
+  // console.log(data);
   if (!data) return;
   // update current state object
   currentStatus.status = data.status;
