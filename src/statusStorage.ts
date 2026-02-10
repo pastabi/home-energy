@@ -1,12 +1,10 @@
 import suncalc from "suncalc";
-import path from "path";
-import { readFile, writeFile } from "fs/promises";
-import { fileURLToPath } from "url";
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+import path from "node:path";
+import { myStartOfDay, substractMinutes, readDataFromFile, writeDataToFile } from "./utils.js";
 const storageFileName = "status-history.json";
-// const storageFileName = "status-history-test.json";
+const storageFileLocation = path.resolve(import.meta.dirname, "..", storageFileName);
 
+// ----- TYPES START -----
 export type Status = {
   status: boolean;
   checkDate: Date;
@@ -30,9 +28,11 @@ type FullStatus = {
   sun: { sunrise: Date; sunset: Date };
   maintenance: boolean;
 };
+// ----- TYPES END -----
 
+// ----- STORAGE START -----
 // default value on server start before the last value retrieved from storage
-let fullStatus: FullStatus = {
+const fullStatus: FullStatus = {
   status: false,
   lastCheckDate: new Date(),
   lastCheckStatus: false,
@@ -40,44 +40,25 @@ let fullStatus: FullStatus = {
   sun: { sunrise: new Date(), sunset: new Date() },
   maintenance: false,
 };
+export default fullStatus;
+// ----- STORAGE END -----
 
-function updateSunData() {
-  const times = suncalc.getTimes(new Date(), Number(process.env.LAT), Number(process.env.LONG));
-  fullStatus.sun.sunrise = times.sunrise;
-  fullStatus.sun.sunset = times.sunset;
-}
-
+// ----- STORAGE FUNCTIONS START -----
 async function getHistory(): Promise<HistoryStorage | undefined> {
-  const filePath = path.resolve(__dirname, "..", storageFileName);
-  try {
-    // for app to work, at least empty file should exist, so don't forget to create it before first build
-    const historyString: string = await readFile(filePath, "utf-8");
+  const historyObject = await readDataFromFile<HistoryStorage>(storageFileLocation);
+  if (!historyObject) return;
+  if (!historyObject.lastStatus)
+    historyObject.lastStatus = { status: false, checkDate: new Date() };
+  if (!historyObject.history) historyObject.history = [];
 
-    const historyObject: HistoryStorage = JSON.parse(historyString || "{}");
-
-    if (!historyObject.lastStatus)
-      historyObject.lastStatus = { status: false, checkDate: new Date() };
-    if (!historyObject.history) historyObject.history = [];
-
-    return historyObject;
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : "Unknown error";
-    console.log(errorMessage);
-  }
+  return historyObject;
 }
 
 async function setHistory(history: HistoryStorage): Promise<void> {
-  const filePath = path.resolve(__dirname, "..", storageFileName);
-  try {
-    const historyString = JSON.stringify(history);
-    await writeFile(filePath, historyString);
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : "Unknown error";
-    console.log(errorMessage);
-  }
+  await writeDataToFile(storageFileLocation, history);
 }
 
-async function createNewHistoryStorage(
+export async function createNewHistoryStorage(
   status: Status,
   newStatus: boolean = false,
   retryMinsToFalse: number = 3,
@@ -97,12 +78,6 @@ async function createNewHistoryStorage(
       });
     } else {
       // the _checkDate_ property of last retry that will return false will be _retryMinsToFalse_ minutes after the electricity actually disapeared, so we need to substract the time spent on retires to calculate actual timestamp when energy dissapeared
-      function substractMinutes(date: Date, minutes: number): Date {
-        const dateMilisecondsNumber = date.getTime();
-        const minutesMillisecondsNumber = minutes * 60 * 1000;
-        return new Date(dateMilisecondsNumber - minutesMillisecondsNumber);
-      }
-
       historyStorage.history.unshift({
         changedToStatus: newEnergyStatus,
         dateOfChange: substractMinutes(status.checkDate, retryMinsToFalse),
@@ -117,14 +92,8 @@ async function createNewHistoryStorage(
   return historyStorage;
 }
 
-async function updateHistory(newHistoryStorage: HistoryStorage): Promise<void> {
+export async function updateHistory(newHistoryStorage: HistoryStorage): Promise<void> {
   await setHistory(newHistoryStorage);
-}
-
-function myStartOfDay(date: Date): Date {
-  const theDateCopy = new Date(date);
-  theDateCopy.setHours(0, 0, 0, 0);
-  return theDateCopy;
 }
 
 function filterOldHistoryEntries(historyArray: HistoryEntry[]): HistoryEntry[] {
@@ -147,7 +116,7 @@ function filterOldHistoryEntries(historyArray: HistoryEntry[]): HistoryEntry[] {
   return filteredHistoryArray;
 }
 
-function updateFullStatus(
+export function updateFullStatus(
   freshStatus: Status,
   newHistoryStorage: boolean | HistoryStorage = false,
 ): void {
@@ -161,7 +130,7 @@ function updateFullStatus(
   }
 }
 
-async function setFullStatusFromHistory(): Promise<void> {
+export async function setFullStatusFromHistory(): Promise<void> {
   const historyStorage = await getHistory();
   if (!historyStorage) return;
 
@@ -172,12 +141,10 @@ async function setFullStatusFromHistory(): Promise<void> {
   updateSunData();
 }
 
-export default fullStatus;
+export function updateSunData() {
+  const times = suncalc.getTimes(new Date(), Number(process.env.LAT), Number(process.env.LONG));
+  fullStatus.sun.sunrise = times.sunrise;
+  fullStatus.sun.sunset = times.sunset;
+}
 
-export {
-  updateSunData,
-  createNewHistoryStorage,
-  updateFullStatus,
-  updateHistory,
-  setFullStatusFromHistory,
-};
+// ----- STORAGE FUNCTIONS END -----
