@@ -68,14 +68,14 @@ function constructHistoryContentArray(): void {
   const daysStartTexts = arrayOfTextForWeekdays(daysStartTimestamps);
 
   const coef = 4; // x minutes = 1px of height
-  const maxHistoryReturnLength = 1000 * 60 * 60 * 24 * 7; // 7 days
+  const maxHistoryReturnOldness = 1000 * 60 * 60 * 24 * 7; // 7 days
 
   let historyContent: HistoryEntryContent[] | OldHistoryEntryContent = [];
 
   if (
     currentStatus.history.length === 1 &&
     new Date(currentStatus.history.at(0)!.dateOfChange).getTime() <
-      Date.now() - maxHistoryReturnLength
+      Date.now() - maxHistoryReturnOldness
   ) {
     historyContent = {
       lastStatus: currentStatus.history.at(0)!.changedToStatus,
@@ -100,9 +100,17 @@ function constructHistoryContentArray(): void {
           ifLastEntry: { lastEntryHeight: 0, lastEntryText: "" },
         };
 
+        const theLastAcceptableHistoryEntryTimestamp: number = Date.now() - maxHistoryReturnOldness;
+        const startOfLastAcceptableDay: number = myStartOfDay(
+          new Date(theLastAcceptableHistoryEntryTimestamp),
+        ).getTime();
+
         // filling dayChange
         for (let i = 0; i < daysStartTimestamps.length; i++) {
-          if (
+          if (new Date(dateOfChange).getTime() < startOfLastAcceptableDay) {
+            content.statusDuration.statusHeight = -1;
+            break;
+          } else if (
             (!previousEntryDate &&
               myIsAfter(new Date(daysStartTimestamps[i]), new Date(dateOfChange))) ||
             (myIsAfter(new Date(daysStartTimestamps[i]), new Date(dateOfChange)) &&

@@ -153,6 +153,8 @@ function updateFullStatus(
 ): void {
   fullStatus.lastCheckStatus = freshStatus.status;
   fullStatus.lastCheckDate = freshStatus.checkDate;
+  // even though no new entry was added, every new state update we should filter the current history array to not dispay some very old data when there were no new statuses for a long time
+  fullStatus.history = filterOldHistoryEntries(fullStatus.history);
   if (typeof newHistoryStorage !== "boolean") {
     fullStatus.status = freshStatus.status;
     fullStatus.history = filterOldHistoryEntries(newHistoryStorage.history);
