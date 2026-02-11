@@ -1,11 +1,14 @@
 import { notifyAllUsers } from "./services/telegram.js";
+import { telegramStorageLocation } from "./services/userStorageOperations.js";
 import fullStatus, {
   updateHistory,
   Status,
   updateFullStatus,
   createNewHistoryStorage,
   updateSunData,
+  historyStorageLocation,
 } from "./statusStorage.js";
+import { backupFileStorages } from "./utils.js";
 
 const url = process.env.HOME_URL;
 
@@ -32,17 +35,37 @@ async function checkStatus(): Promise<Status> {
 
 let errorCounter: number = 0;
 let lastSunCheckHourCache: number = NaN;
+let lastSunCheckDayCache: number = NaN;
+
+function everyHourActions() {
+  const thisHour = new Date().getHours();
+  if (lastSunCheckHourCache !== thisHour) {
+    // update sun data
+    updateSunData();
+    // split history file storage
+    lastSunCheckHourCache = thisHour;
+  }
+}
+async function everyDayActions() {
+  const thisDay = new Date().getDate();
+  if (lastSunCheckDayCache !== thisDay) {
+    // backup file storages
+    await backupFileStorages(historyStorageLocation, telegramStorageLocation);
+    lastSunCheckDayCache = thisDay;
+  }
+}
 
 export default async function updateStatus(): Promise<void> {
   const freshStatus = await checkStatus();
 
-  // update sun data
-  if (lastSunCheckHourCache !== new Date().getHours()) {
-    updateSunData();
-    lastSunCheckHourCache = new Date().getHours();
-  }
+  // the updateStatus run every minute, but for some actions this is too often
+  // so there are separate set of actions incapsulated in this function that run every hour
+  // --- update sun data | split history file storage ---
+  everyHourActions();
 
-  // update file storage
+  // functions here run every year
+  // --- backup file storages ---
+  await everyDayActions();
 
   // update status and history
   if (fullStatus.status === freshStatus.status) {

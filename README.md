@@ -14,7 +14,7 @@
 - [x] **Dynamic Styling:** Once the backend part is ready, apply colors representing power status (on/off) and time of day (day/night) based on sunrise/sunset data.
 - [x] **Create my own Date functions** and compare bunlde size when with date-fns.
 - [x] **Handle maintanance mode** and errors, to not fetch every second and handle displayed text accordingly.
-- [x] **Unify styles and add manifest images**
+- [x] **Unify styles and add manifest images.**
 - [ ] **Documentation & Links:** Create a GitHub README with setup instructions and add buttons on the page linking to my personal website and the repository.
 
 ### Backend

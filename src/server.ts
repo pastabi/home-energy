@@ -72,13 +72,13 @@ app.get("/{*any}", (req: Request, res: Response) => {
 const port = process.env.PORT || 5001;
 app.listen(port, () => {
   console.log(`Server is listening on port: ${port}...`);
-  telegramBot
-    .start({
-      onStart: (botInfo) => {
-        console.log(`Telegram bot @${botInfo.username} is running...`);
-      },
-    })
-    .catch((error) => {
-      console.log(`Failed to start Telegram bot:`, error);
-    });
+  // telegramBot
+  //   .start({
+  //     onStart: (botInfo) => {
+  //       console.log(`Telegram bot @${botInfo.username} is running...`);
+  //     },
+  //   })
+  //   .catch((error) => {
+  //     console.log(`Failed to start Telegram bot:`, error);
+  //   });
 });

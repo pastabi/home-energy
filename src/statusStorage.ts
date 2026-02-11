@@ -2,7 +2,11 @@ import suncalc from "suncalc";
 import path from "node:path";
 import { myStartOfDay, substractMinutes, readDataFromFile, writeDataToFile } from "./utils.js";
 const storageFileName = "status-history.json";
-const storageFileLocation = path.resolve(import.meta.dirname, "..", storageFileName);
+export const historyStorageLocation: string = path.resolve(
+  import.meta.dirname,
+  "..",
+  storageFileName,
+);
 
 // ----- TYPES START -----
 export type Status = {
@@ -45,7 +49,7 @@ export default fullStatus;
 
 // ----- STORAGE FUNCTIONS START -----
 async function getHistory(): Promise<HistoryStorage | undefined> {
-  const historyObject = await readDataFromFile<HistoryStorage>(storageFileLocation);
+  const historyObject = await readDataFromFile<HistoryStorage>(historyStorageLocation);
   if (!historyObject) return;
   if (!historyObject.lastStatus)
     historyObject.lastStatus = { status: false, checkDate: new Date() };
@@ -55,7 +59,7 @@ async function getHistory(): Promise<HistoryStorage | undefined> {
 }
 
 async function setHistory(history: HistoryStorage): Promise<void> {
-  await writeDataToFile(storageFileLocation, history);
+  await writeDataToFile(historyStorageLocation, history);
 }
 
 export async function createNewHistoryStorage(

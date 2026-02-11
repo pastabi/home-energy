@@ -12,10 +12,10 @@ type UserStorage = {
 // ----- TYPES END -----
 
 const storageFileName = "telegram-users.json";
-const storageLocation = path.resolve(import.meta.dirname, storageFileName);
+export const telegramStorageLocation: string = path.resolve(import.meta.dirname, storageFileName);
 
 export async function addUser(user: User): Promise<void> {
-  let userStorage = await readDataFromFile<UserStorage>(storageLocation);
+  let userStorage = await readDataFromFile<UserStorage>(telegramStorageLocation);
   if (!userStorage || !userStorage.users) {
     userStorage = { users: [] };
   }
@@ -23,11 +23,11 @@ export async function addUser(user: User): Promise<void> {
     (existingUser) => existingUser.chatId !== user.chatId,
   );
   userStorage.users.push(user);
-  await writeDataToFile(storageLocation, userStorage);
+  await writeDataToFile(telegramStorageLocation, userStorage);
 }
 
 export async function getAllUsers(): Promise<User[]> {
-  let userStorage = await readDataFromFile<UserStorage>(storageLocation);
+  let userStorage = await readDataFromFile<UserStorage>(telegramStorageLocation);
   if (!userStorage || !userStorage.users) {
     userStorage = { users: [] };
   }
@@ -35,11 +35,11 @@ export async function getAllUsers(): Promise<User[]> {
 }
 
 export async function deleteUser(chatId: number): Promise<void> {
-  let userStorage = await readDataFromFile<UserStorage>(storageLocation);
+  let userStorage = await readDataFromFile<UserStorage>(telegramStorageLocation);
   if (!userStorage || !userStorage.users) {
     userStorage = { users: [] };
   }
   userStorage.users = userStorage.users.filter((user) => user.chatId !== chatId);
 
-  await writeDataToFile(storageLocation, userStorage);
+  await writeDataToFile(telegramStorageLocation, userStorage);
 }
