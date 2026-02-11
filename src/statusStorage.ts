@@ -1,6 +1,15 @@
 import suncalc from "suncalc";
 import path from "node:path";
-import { myStartOfDay, substractMinutes, readDataFromFile, writeDataToFile } from "./utils.js";
+import {
+  myStartOfDay,
+  substractMinutes,
+  readDataFromFile,
+  writeDataToFile,
+  myIsSameMonth,
+  getYearAndMonth,
+  myStartOfMonth,
+} from "./utils.js";
+import { copyFile, mkdir } from "node:fs/promises";
 const storageFileName = "status-history.json";
 export const historyStorageLocation: string = path.resolve(
   import.meta.dirname,
@@ -56,6 +65,10 @@ async function getHistory(): Promise<HistoryStorage> {
     historyObject.lastStatus = { status: false, checkDate: new Date() };
   if (!historyObject.history) historyObject.history = [];
 
+  historyObject.history = historyObject.history.map((entry) => {
+    return { changedToStatus: entry.changedToStatus, dateOfChange: new Date(entry.dateOfChange) };
+  });
+
   return historyObject;
 }
 
@@ -100,9 +113,63 @@ export async function updateHistory(newHistoryStorage: HistoryStorage): Promise<
   await setHistory(newHistoryStorage);
 }
 
+export async function monthlyHistoryStorageSplit(): Promise<boolean | undefined> {
+  const currentHistoryStorage = await getHistory();
+  const dateOfLastEntry = currentHistoryStorage.history.at(0)?.dateOfChange || new Date();
+  const thisMonth = new Date().getUTCMonth();
+  const previousMonth = new Date(new Date().setUTCMonth(thisMonth - 1));
+  // checking if the new month may have started
+  if (myIsSameMonth(dateOfLastEntry, new Date())) return;
+  // checking if the last entry was really from the previous month, or it was from the buffer the months before previous
+  if (!myIsSameMonth(dateOfLastEntry, previousMonth)) return;
+  else {
+    // construct archive content
+    type ArchiveHistoryStorage = {
+      history: HistoryEntry[];
+    };
+    let archiveHistoryStorage: ArchiveHistoryStorage = { history: [] };
+    archiveHistoryStorage.history = currentHistoryStorage.history.filter((entry) =>
+      myIsSameMonth(entry.dateOfChange, dateOfLastEntry),
+    );
+
+    // construct file path
+    const archiveDirname = path.join(import.meta.dirname, "..", "archive");
+    await mkdir(archiveDirname, { recursive: true });
+
+    const fileToArchiveName = storageFileName.split(".").at(0);
+    const fileToArchiveExtension = storageFileName.split(".").at(1);
+
+    const fileToArchiveYearAndMonth = getYearAndMonth(dateOfLastEntry);
+
+    const historyStorageArchiveName = `${fileToArchiveName}-${fileToArchiveYearAndMonth}.${fileToArchiveExtension}`;
+    const historyStorageArchiveLocation = path.resolve(archiveDirname, historyStorageArchiveName);
+
+    const result = await writeDataToFile(historyStorageArchiveLocation, archiveHistoryStorage);
+    if (result) {
+      console.log(`Archive for ${fileToArchiveYearAndMonth} was created.`);
+    } else {
+      console.warn("Something went wrong, skipping archive operation until the next try.");
+      return result;
+    }
+
+    const bufferDuration = 1000 * 60 * 60 * 24 * 9; // 9 days
+    const startOfNewMonth = myStartOfMonth(new Date()).getTime();
+
+    const newMonthHisotryStorage = { ...currentHistoryStorage };
+
+    // deleting old entries, leaving only last 9 days to be able to serve them in the first days of the month
+    newMonthHisotryStorage.history = newMonthHisotryStorage.history.filter(
+      (entry) => entry.dateOfChange.getTime() >= startOfNewMonth - bufferDuration,
+    );
+
+    await updateHistory(newMonthHisotryStorage);
+    return result;
+  }
+}
+
 function filterOldHistoryEntries(historyArray: HistoryEntry[]): HistoryEntry[] {
   // storing maximum of 7 days of history in the data we will return
-  const maxHistoryReturnLength: number = 1000 * 60 * 60 * 24 * 7; // 7 days
+  const maxHistoryReturnLength: number = 1000 * 60 * 60 * 24 * 8; // 7 days with one day buffer
   const theLastAcceptableHistoryEntryTimestamp: number = Date.now() - maxHistoryReturnLength;
   const startOfLastAcceptableDay: number = myStartOfDay(
     new Date(theLastAcceptableHistoryEntryTimestamp),

@@ -6,6 +6,7 @@
     "status-history.json",
     "status-history-test.json",
     "src/services/telegram-users.json",
-    "backups/*"
+    "backups/*",
+    "archive/*"
   ]
 }

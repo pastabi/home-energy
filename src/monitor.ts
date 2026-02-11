@@ -7,6 +7,7 @@ import fullStatus, {
   createNewHistoryStorage,
   updateSunData,
   historyStorageLocation,
+  monthlyHistoryStorageSplit,
 } from "./statusStorage.js";
 import { backupFileStorages } from "./utils.js";
 
@@ -34,24 +35,26 @@ async function checkStatus(): Promise<Status> {
 }
 
 let errorCounter: number = 0;
-let lastSunCheckHourCache: number = NaN;
-let lastSunCheckDayCache: number = NaN;
+let lastCheckHourCache: number = NaN;
+let lastCheckDayCache: number = NaN;
 
 function everyHourActions() {
-  const thisHour = new Date().getHours();
-  if (lastSunCheckHourCache !== thisHour) {
-    // update sun data
+  const thisHour = new Date().getUTCHours();
+  if (lastCheckHourCache !== thisHour) {
+    // running updateSunData every hour ensures compatibility with any place on Earth,
+    // so whatever place we choose, it will get the fresh sunrise/sunset data
     updateSunData();
-    // split history file storage
-    lastSunCheckHourCache = thisHour;
+    lastCheckHourCache = thisHour;
   }
 }
 async function everyDayActions() {
-  const thisDay = new Date().getDate();
-  if (lastSunCheckDayCache !== thisDay) {
+  const thisDay = new Date().getUTCDate();
+  if (lastCheckDayCache !== thisDay) {
     // backup file storages
-    await backupFileStorages(historyStorageLocation, telegramStorageLocation);
-    lastSunCheckDayCache = thisDay;
+    const backupSuccess = await backupFileStorages(historyStorageLocation, telegramStorageLocation);
+    // split history file storage
+    const archiveSeccess = await monthlyHistoryStorageSplit();
+    if (backupSuccess !== false && archiveSeccess !== false) lastCheckDayCache = thisDay;
   }
 }
 
