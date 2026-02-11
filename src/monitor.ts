@@ -70,7 +70,6 @@ export default async function updateStatus(): Promise<void> {
   // update status and history
   if (fullStatus.status === freshStatus.status) {
     const newHistoryStorage = await createNewHistoryStorage(freshStatus);
-    if (!newHistoryStorage) return;
     await updateHistory(newHistoryStorage);
     updateFullStatus(freshStatus);
     errorCounter = 0;
@@ -79,7 +78,6 @@ export default async function updateStatus(): Promise<void> {
       errorCounter++;
       if (errorCounter === 3) {
         const newHistoryStorage = await createNewHistoryStorage(freshStatus, true);
-        if (!newHistoryStorage) return;
         await updateHistory(newHistoryStorage);
         updateFullStatus(freshStatus, newHistoryStorage);
         errorCounter = 0;
@@ -87,7 +85,6 @@ export default async function updateStatus(): Promise<void> {
       } else updateFullStatus(freshStatus);
     } else {
       const newHistoryStorage = await createNewHistoryStorage(freshStatus, true);
-      if (!newHistoryStorage) return;
       await updateHistory(newHistoryStorage);
       updateFullStatus(freshStatus, newHistoryStorage);
       await notifyAllUsers("💡 | Світло з'явилось!");

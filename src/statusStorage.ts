@@ -48,9 +48,10 @@ export default fullStatus;
 // ----- STORAGE END -----
 
 // ----- STORAGE FUNCTIONS START -----
-async function getHistory(): Promise<HistoryStorage | undefined> {
-  const historyObject = await readDataFromFile<HistoryStorage>(historyStorageLocation);
-  if (!historyObject) return;
+async function getHistory(): Promise<HistoryStorage> {
+  let historyObject = await readDataFromFile<HistoryStorage>(historyStorageLocation);
+  if (!historyObject)
+    historyObject = { lastStatus: { status: false, checkDate: new Date() }, history: [] };
   if (!historyObject.lastStatus)
     historyObject.lastStatus = { status: false, checkDate: new Date() };
   if (!historyObject.history) historyObject.history = [];
@@ -66,9 +67,8 @@ export async function createNewHistoryStorage(
   status: Status,
   newStatus: boolean = false,
   retryMinsToFalse: number = 3,
-): Promise<HistoryStorage | undefined> {
+): Promise<HistoryStorage> {
   const historyStorage = await getHistory();
-  if (!historyStorage) return;
 
   if (!newStatus) historyStorage.lastStatus = status;
   else {
@@ -136,7 +136,6 @@ export function updateFullStatus(
 
 export async function setFullStatusFromHistory(): Promise<void> {
   const historyStorage = await getHistory();
-  if (!historyStorage) return;
 
   fullStatus.status = historyStorage.lastStatus.status;
   fullStatus.lastCheckDate = new Date(historyStorage.lastStatus.checkDate);
