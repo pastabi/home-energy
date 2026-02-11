@@ -29,4 +29,4 @@
 - [x] **Add storage files regular backup** and implement safe file read/write responces, to reduce undefined cases.
 - [x] **Implement log rotation:** Save storage files monthly; concatenate the last two months of history to ensure seamless data transitions at the start of a new month.
 - [x] **Add HTML template** for maintenance and items deletion call results.
-- [ ] **Add history items deletion from url**, to be able to delete wrong statuses when have no access to server.
+- [x] **Add history items deletion from url**, to be able to delete wrong statuses when have no access to server.

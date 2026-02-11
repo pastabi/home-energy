@@ -162,7 +162,7 @@ export async function monthlyHistoryStorageSplit(): Promise<boolean | undefined>
       (entry) => entry.dateOfChange.getTime() >= startOfNewMonth - bufferDuration,
     );
 
-    await updateHistory(newMonthHisotryStorage);
+    await setHistory(newMonthHisotryStorage);
     return result;
   }
 }
@@ -185,6 +185,23 @@ function filterOldHistoryEntries(historyArray: HistoryEntry[]): HistoryEntry[] {
   }
 
   return filteredHistoryArray;
+}
+
+export async function deleteEntriesFromHistoryStorage(
+  start: number,
+  number: number,
+): Promise<boolean> {
+  const historyStorage = await getHistory();
+  if (!Number.isInteger(start) || !Number.isInteger(number)) return false;
+  if (start < 0 || number < 0) return false;
+
+  // allow to delete only 2 at a time to not accidently delete the whole history
+  if (start >= historyStorage.history.length || number > 2) return false;
+  if (historyStorage.history.length < start + number) return false;
+  historyStorage.history.splice(start, number);
+  await setHistory(historyStorage);
+  await setFullStatusFromHistory();
+  return true;
 }
 
 export function updateFullStatus(

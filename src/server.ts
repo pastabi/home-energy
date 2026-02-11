@@ -6,7 +6,10 @@ import "dotenv/config";
 import path from "path";
 
 import { setupMonitoring } from "./monitor.js";
-import fullStatus, { setFullStatusFromHistory } from "./statusStorage.js";
+import fullStatus, {
+  deleteEntriesFromHistoryStorage,
+  setFullStatusFromHistory,
+} from "./statusStorage.js";
 import { telegramBot } from "./services/telegram.js";
 
 const app = express();
@@ -48,21 +51,37 @@ app.use(express.static("./client/dist"));
 app.get("/api/v1/status", (req: Request, res: Response) => {
   res.status(200).json({ fullStatus });
 });
-app.get(`/api/v1/maintenance/`, (req: Request, res: Response) => {
+app.get(`/api/v1/maintenance/`, async (req: Request, res: Response) => {
   const userToken = req.query.token as string;
+  const deleteHistoryEntries = req.query.delete as string;
   const secretToken = process.env.MAINTENANCE_TOKEN;
 
   if (!secretToken) return res.status(500).send("Для початку треба налаштувати токен на сервері.");
   if (!userToken || userToken !== secretToken)
     return res.status(403).send("Неправильний токен. Перевірте токен та спробуйте ще раз.");
 
-  fullStatus.maintenance = !fullStatus.maintenance;
-  setupMonitoring();
-
   let message: string = "";
-  if (fullStatus.maintenance) message = "Режим технічних робіт активовано.";
-  if (!fullStatus.maintenance)
-    message = "Режим технічних робіт деактивовано, сервер працює в штатному режимі.";
+
+  if (!deleteHistoryEntries) {
+    fullStatus.maintenance = !fullStatus.maintenance;
+    setupMonitoring();
+
+    if (fullStatus.maintenance) message = "Режим технічних робіт активовано.";
+    if (!fullStatus.maintenance)
+      message = "Режим технічних робіт деактивовано, сервер працює в штатному режимі.";
+  } else {
+    const start = Number(deleteHistoryEntries.split(",").at(0));
+    const count = Number(deleteHistoryEntries.split(",").at(1));
+    if (isNaN(start) || isNaN(count) || start < 0 || count < 0)
+      message = "Невірний формат. Введіть два додатних числа через кому.";
+    else {
+      const deletionSccess = await deleteEntriesFromHistoryStorage(Number(start), Number(count));
+      message = deletionSccess
+        ? `Було видалено записів з історії: ${count}. Перейдіть на головну сторінку щоб перевірити результат.`
+        : "Щось пішло не так. Записи не було видалено. Перевірте введені значення та спробуйте ще раз.";
+    }
+  }
+
   const servicePageHtmlTemplate = `
   <!DOCTYPE html>
   <html>
@@ -89,13 +108,13 @@ app.get("/{*any}", (req: Request, res: Response) => {
 const port = process.env.PORT || 5001;
 app.listen(port, () => {
   console.log(`Server is listening on port: ${port}...`);
-  // telegramBot
-  //   .start({
-  //     onStart: (botInfo) => {
-  //       console.log(`Telegram bot @${botInfo.username} is running...`);
-  //     },
-  //   })
-  //   .catch((error) => {
-  //     console.log(`Failed to start Telegram bot:`, error);
-  //   });
+  telegramBot
+    .start({
+      onStart: (botInfo) => {
+        console.log(`Telegram bot @${botInfo.username} is running...`);
+      },
+    })
+    .catch((error) => {
+      console.log(`Failed to start Telegram bot:`, error);
+    });
 });
