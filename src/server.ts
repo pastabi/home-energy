@@ -63,7 +63,24 @@ app.get(`/api/v1/maintenance/`, (req: Request, res: Response) => {
   if (fullStatus.maintenance) message = "Режим технічних робіт активовано.";
   if (!fullStatus.maintenance)
     message = "Режим технічних робіт деактивовано, сервер працює в штатному режимі.";
-  res.status(200).send(message);
+  const servicePageHtmlTemplate = `
+  <!DOCTYPE html>
+  <html>
+  <head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  </head>
+  <body style="text-align: center; background-color: #0b1120; color: #dce0ea; font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;">
+    <p style="font-weight: bold; font-size: 1.5rem; margin-top: 20px">${message}</p>
+    <p style="font-size: 1.2rem">
+      <a style="color: #dce0ea; font-weight: 400;" href="/api/v1/maintenance?token=${secretToken}">${fullStatus.maintenance ? "Деактивувати режим технічних робіт" : "Активувати режим технічних робіт"}</a>
+    </p>
+    <p style="font-size: 1.2rem">
+      <a style="color: #dce0ea; font-weight: 400;" href="/">На головну<a>
+    <p>
+  <body>
+  </html>
+  `;
+  res.status(200).send(servicePageHtmlTemplate);
 });
 app.get("/{*any}", (req: Request, res: Response) => {
   res.status(404).sendFile(path.resolve("./client/dist/index.html"));
