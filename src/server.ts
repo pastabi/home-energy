@@ -11,6 +11,7 @@ import fullStatus, {
   setFullStatusFromHistory,
 } from "./statusStorage.js";
 import { telegramBot } from "./services/telegram.js";
+import statsRouter, { logVisits } from "./stats.js";
 import { htmlTemplate } from "./utils.js";
 
 const app = express();
@@ -21,6 +22,8 @@ setupMonitoring();
 // console.log(fullStatus);
 
 // ----- SECURITY HEADERS START -----
+app.set("trust proxy", 1);
+
 app.use(
   helmet({
     contentSecurityPolicy: {
@@ -46,6 +49,18 @@ app.use(
 );
 // ----- SECURITY HEADERS END -----
 
+// ----- LOG MIDDLEWARE START -----
+app.use((req, res, next) => {
+  const noLog: string[] = [".png", ".json", "/api", ".ico", ".css", ".js"];
+  const shouldIgnore = req.method !== "GET" || noLog.some((part) => req.path.includes(part));
+  if (shouldIgnore) {
+    return next();
+  }
+
+  logVisits(req);
+  next();
+});
+// ----- LOG MIDDLEWARE END -----
 
 // ----- ROUTES START -----
 app.use(compression());
@@ -54,7 +69,9 @@ app.use(express.static("./client/dist"));
 app.get("/api/v1/status", (req: Request, res: Response) => {
   res.status(200).json({ fullStatus });
 });
-app.get(`/api/v1/maintenance/`, async (req: Request, res: Response) => {
+app.use("/api/v1/stats", statsRouter);
+// transfer main code to the maintenance.ts
+app.get("/api/v1/maintenance", async (req: Request, res: Response) => {
   const userToken = req.query.token as string;
   const deleteHistoryEntries = req.query.delete as string;
   const secretToken = process.env.MAINTENANCE_TOKEN;
@@ -88,7 +105,7 @@ app.get(`/api/v1/maintenance/`, async (req: Request, res: Response) => {
       const deletionSuccess = await deleteEntriesFromHistoryStorage(Number(start), Number(count));
       if (deletionSuccess)
         message = `Було видалено записів з історії: ${count}. Перейдіть на головну сторінку щоб перевірити результат.`;
-    else {
+      else {
         status = 400;
         message =
           "Щось пішло не так. Записи не було видалено. Перевірте введені значення та спробуйте ще раз.";
@@ -124,7 +141,7 @@ app.listen(port, () => {
         },
       })
       .catch((error) => {
-        console.log(`Failed to start Telegram bot:`, error);
+        console.error(`Failed to start Telegram bot:`, error);
       });
   }
 });

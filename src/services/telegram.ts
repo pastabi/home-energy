@@ -26,7 +26,7 @@ ${energyStatus ? "Зараз світло є." : "Зараз світла нем
     await ctx.reply(message);
     console.log(`New subscriber: ${username} (${chatId})`);
   } catch (error) {
-    console.log("Error saving user: ", error);
+    console.error("Error saving user: ", error);
   }
 });
 
@@ -42,7 +42,7 @@ export async function notifyAllUsers(message: string): Promise<void> {
         if (error.description.includes("blocked")) {
           console.log(`User ${user.chatId} blocked the bot.`);
           await deleteUser(user.chatId);
-        } else console.log(`Telegram API Error: ${error.description}`);
+        } else console.error(`Telegram API Error: ${error.description}`);
       } else if (error instanceof HttpError) {
         console.error(`Could not contact Telegram: ${error.message}`);
       } else {
