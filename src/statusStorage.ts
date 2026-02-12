@@ -152,7 +152,7 @@ export async function monthlyHistoryStorageSplit(): Promise<boolean | undefined>
     if (result) {
       if (code === "EEXIST") {
         console.log(
-          "Archive file for this month already exists. Skipping this attempt to create archive.",
+          "Archive file for previous month already exists. Skipping this attempt to create archive.",
         );
         return result;
       }
