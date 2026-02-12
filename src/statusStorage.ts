@@ -144,9 +144,19 @@ export async function monthlyHistoryStorageSplit(): Promise<boolean | undefined>
     const historyStorageArchiveName = `${fileToArchiveName}-${fileToArchiveYearAndMonth}.${fileToArchiveExtension}`;
     const historyStorageArchiveLocation = path.resolve(archiveDirname, historyStorageArchiveName);
 
-    const result = await writeDataToFile(historyStorageArchiveLocation, archiveHistoryStorage);
+    const { result, code } = await writeDataToFile(
+      historyStorageArchiveLocation,
+      archiveHistoryStorage,
+      true,
+    );
     if (result) {
-      console.log(`Archive for ${fileToArchiveYearAndMonth} was created.`);
+      if (code === "EEXIST") {
+        console.log(
+          "Archive file for this month already exists. Skipping this attempt to create archive.",
+        );
+        return result;
+      }
+      console.log(`Archive for ${fileToArchiveYearAndMonth} history storage was created.`);
     } else {
       console.warn("Something went wrong, skipping archive operation until the next try.");
       return result;

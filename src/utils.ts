@@ -41,15 +41,22 @@ export async function readDataFromFile<T>(fileLocation: string): Promise<T | und
     return undefined;
   }
 }
-export async function writeDataToFile<T>(fileLocation: string, data: T): Promise<boolean> {
+export async function writeDataToFile<T>(
+  fileLocation: string,
+  data: T,
+  writeOnly: boolean = false,
+): Promise<{ result: boolean; code: string }> {
+  const options = { flag: `${writeOnly ? "wx" : ""}` };
   try {
     const historyString = JSON.stringify(data);
-    await writeFile(fileLocation, historyString);
-    return true;
-  } catch (error) {
+    await writeFile(fileLocation, historyString, options);
+    return { result: true, code: "" };
+  } catch (error: any) {
+    if (error.code === "EEXIST") return { result: true, code: "EEXIST" };
+
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
     console.log(errorMessage);
-    return false;
+    return { result: false, code: error.code || "UNKNOWN" };
   }
 }
 
@@ -62,7 +69,7 @@ export async function backupFileStorages(...fileLocations: string[]): Promise<bo
     const utcDay = new Date().getUTCDay();
     const backupDayOfWeek = utcDay === 0 ? 7 : utcDay;
     // we will keep only 7 days of backups, so when week passes, we just overwrite the same day from the last week
-    const backupFileName = `${fileToBackupName}-${backupDayOfWeek}.${fileToBackupExtension}`;
+    const backupFileName = `${fileToBackupName}-${backupDayOfWeek}${fileToBackupExtension}`;
     const backupFileLocation = path.resolve(backupsDirname, backupFileName);
     try {
       await copyFile(fileLocation, backupFileLocation);
