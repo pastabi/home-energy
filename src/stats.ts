@@ -124,6 +124,7 @@ router.get("/", async (req, res) => {
     return res
       .status(403)
       .send(htmlTemplate("<p>Неправильний токен. Перевірте токен та спробуйте ще раз.</p>"));
+
   try {
     const {
       dateOfStats,
