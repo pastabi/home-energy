@@ -59,7 +59,7 @@ async function getStatusData(): Promise<CurrentStatus | undefined> {
     const errorMessage =
       error instanceof Error ? error.message : "Невідома помилка. Спробуйте пізніше.";
     currentStatusContent.messageText = errorMessage;
-    console.log(errorMessage);
+    console.error(errorMessage);
   }
 }
 
