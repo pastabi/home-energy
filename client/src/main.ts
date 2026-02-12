@@ -1,6 +1,7 @@
 import "./style.css";
 import {
   currentStatus,
+  currentStatusContent,
   millisecondsPassed,
   updateLastCheckDate,
   updateStatusData,
@@ -20,7 +21,7 @@ setInterval(() => {
   updateLastCheckDate();
   updateStatusOnScreen();
   if (millisecondsPassed > 60000) {
-    if (!currentStatus.maintenance) {
+    if (!currentStatus.maintenance && currentStatusContent.messageText.length === 0) {
       updateStatusData();
     } else {
       secondsPassedSinceLastTry++;
