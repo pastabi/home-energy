@@ -1,3 +1,4 @@
+import { appendFile } from "fs/promises";
 import { notifyAllUsers } from "./services/telegram.js";
 import { telegramStorageLocation } from "./services/userStorageOperations.js";
 import fullStatus, {
@@ -10,26 +11,43 @@ import fullStatus, {
   monthlyHistoryStorageSplit,
 } from "./statusStorage.js";
 import { backupFileStorages } from "./utils.js";
+import path from "path";
 
 const url = process.env.HOME_URL;
 
+export async function logRequestCodes(statusCode: number) {
+  const statusCodesLogFileLocation = path.resolve(import.meta.dirname, "..", "statusLog.csv");
+  const time = new Date().toISOString().split("T").at(1)!.split(".").at(0)!;
+
+  const logString = `${time},${statusCode}\n`;
+
+  try {
+    await appendFile(statusCodesLogFileLocation, logString);
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    console.error(`Logging error: ${errorMessage}`);
+  }
+}
+
 async function checkStatus(): Promise<Status> {
   try {
-    const controller = new AbortController();
-
-    const timeoutId = setTimeout(() => controller.abort(), 5000);
     if (!url) throw new Error("HOME_URL is not defined in .env file");
 
-    const responce = await fetch(url, {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+    const response = await fetch(url, {
       signal: controller.signal,
     });
 
     clearTimeout(timeoutId);
 
-    let status: boolean = responce.status === 401 || responce.status === 200 ? true : false;
+    logRequestCodes(response.status);
+    let status: boolean = response.status === 401 || response.status === 200 ? true : false;
 
     return { status, checkDate: new Date() };
   } catch (error) {
+    logRequestCodes(0);
     return { status: false, checkDate: new Date() };
   }
 }
@@ -63,11 +81,11 @@ export default async function updateStatus(): Promise<void> {
 
   // the updateStatus run every minute, but for some actions this is too often
   // so there are separate set of actions incapsulated in this function that run every hour
-  // --- update sun data | split history file storage ---
+  // --- update sun data ---
   everyHourActions();
 
   // functions here run every year
-  // --- backup file storages ---
+  // --- backup file storages | split history file storage ---
   await everyDayActions();
 
   // update status and history

@@ -8,6 +8,7 @@
     "src/services/telegram-users.json",
     "backups/*",
     "archive/*",
-    "logs/*"
+    "logs/*",
+    "statusLog.csv"
   ]
 }

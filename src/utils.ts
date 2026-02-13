@@ -31,7 +31,6 @@ export function substractMinutes(date: Date, minutes: number): Date {
 
 export async function readDataFromFile<T>(fileLocation: string): Promise<T | undefined> {
   try {
-    // for app to work, at least empty file should exist, so don't forget to create it before first build
     const fileDataString: string = await readFile(fileLocation, "utf-8");
 
     return JSON.parse(fileDataString || "{}") as T;
