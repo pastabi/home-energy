@@ -6,4 +6,4 @@ status-history-test.json
 /backups
 /archive
 /logs
-statusLog.csv
+/status-code-logs

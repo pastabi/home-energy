@@ -1,4 +1,4 @@
-import { appendFile } from "fs/promises";
+import { appendFile, mkdir } from "fs/promises";
 import { notifyAllUsers } from "./services/telegram.js";
 import { telegramStorageLocation } from "./services/userStorageOperations.js";
 import fullStatus, {
@@ -16,7 +16,10 @@ import path from "path";
 const url = process.env.HOME_URL;
 
 export async function logRequestCodes(statusCode: number) {
-  const statusCodesLogFileLocation = path.resolve(import.meta.dirname, "..", "statusLog.csv");
+  const date = new Date().toISOString().split("T").at(0)!;
+  const statusCodeLogsDirectory = path.join(import.meta.dirname, "..", "status-code-logs");
+  const statusCodesLogFileLocation = path.resolve(statusCodeLogsDirectory, `statusLog-${date}.csv`);
+  await mkdir(statusCodeLogsDirectory, { recursive: true });
   const time = new Date().toISOString().split("T").at(1)!.split(".").at(0)!;
 
   const logString = `${time},${statusCode}\n`;

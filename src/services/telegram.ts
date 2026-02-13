@@ -31,6 +31,7 @@ ${energyStatus ? "Зараз світло є." : "Зараз світла нем
 });
 
 export async function notifyAllUsers(message: string): Promise<void> {
+  if (process.env.NODE_ENV !== "production") return;
   const users = await getAllUsers();
 
   for (const user of users) {

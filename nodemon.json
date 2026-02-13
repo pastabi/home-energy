@@ -9,6 +9,6 @@
     "backups/*",
     "archive/*",
     "logs/*",
-    "statusLog.csv"
+    "status-code-logs/*"
   ]
 }
