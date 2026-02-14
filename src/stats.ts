@@ -86,7 +86,8 @@ export async function getDailyStats(): Promise<DailyStats> {
         ua.includes("bot") ||
         ua.includes("crawl") ||
         ua.includes("spider") ||
-        ua.includes("headless")
+        ua.includes("headless") ||
+        ua.includes("curl")
       ) {
         uniqueBotsSet.add(ip);
         botHits++;
