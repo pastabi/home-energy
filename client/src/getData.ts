@@ -204,9 +204,9 @@ function constructHistoryContentArray(): void {
 }
 
 function updateMillisecondsPassed(): void {
-  // add 5 seconds to the actual last check time, to get a buffer
+  // add 10 seconds to the actual last check time, to get a buffer
   // so when we fetch the data next time, we know for sure that server already got the fresh one
-  const lastCheckDate: number = new Date(currentStatus.lastCheckDate).getTime() + 5000;
+  const lastCheckDate: number = new Date(currentStatus.lastCheckDate).getTime() + 10000;
   const now: number = Date.now();
   if (lastCheckDate > now) millisecondsPassed = 60000 - (lastCheckDate - now);
   else millisecondsPassed = now - lastCheckDate;

@@ -37,7 +37,7 @@ async function checkStatus(): Promise<Status> {
     if (!url) throw new Error("HOME_URL is not defined in .env file");
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 5000);
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
 
     const response = await fetch(url, {
       signal: controller.signal,
