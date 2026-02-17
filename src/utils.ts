@@ -153,3 +153,51 @@ export async function checkPort(host: string, port: number, timeout = 5000): Pro
     socket.connect(port, host);
   });
 }
+
+export async function rebootRouter(): Promise<boolean> {
+  const login = process.env.ROUTER_LOGIN;
+  const password = process.env.ROUTER_PASSWORD;
+  const routerUrl = process.env.HOME_URL;
+  try {
+    if (!routerUrl) throw new Error("HOME_URL is not defined in .env file");
+    if (!login || !password)
+      throw new Error("Defined ROUTER_LOGIN and ROUTER_PASSWORD in .env file");
+    const authString = Buffer.from(`${login}:${password}`).toString("base64");
+
+    const response = await fetch(`${routerUrl}/Reboot.asp`, {
+      headers: {
+        accept:
+          "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
+        "accept-language": "en-US,en;q=0.6",
+        authorization: `Basic ${authString}`,
+        "cache-control": "no-cache",
+        pragma: "no-cache",
+        "sec-gpc": "1",
+        "upgrade-insecure-requests": "1",
+        Referer: `${routerUrl}/`,
+      },
+      body: null,
+      method: "GET",
+    });
+
+    if (response.status === 200 || response.status === 401)
+      console.log(`On reboot request router responded with ${response.status}.`);
+    return true;
+  } catch (error: any) {
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+
+    const isUndiciSocketError = error.cause?.code === "UND_ERR_SOCKET";
+    const isOtherSideClosed = error.cause?.message === "other side closed";
+    const isConnReset = error.cause?.code === "ECONNRESET";
+
+    if (isUndiciSocketError || isOtherSideClosed || isConnReset) {
+      console.log(
+        "Router connection closed immediately after request. Consider as successful reboot initiation.",
+      );
+      return true;
+    } else {
+      console.error("Failed to send reboot command: ", errorMessage);
+      return false;
+    }
+  }
+}

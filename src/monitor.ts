@@ -10,7 +10,7 @@ import fullStatus, {
   historyStorageLocation,
   monthlyHistoryStorageSplit,
 } from "./statusStorage.js";
-import { backupFileStorages, checkPort } from "./utils.js";
+import { backupFileStorages, checkPort, rebootRouter } from "./utils.js";
 import path from "path";
 
 const url = process.env.HOME_URL;
@@ -88,12 +88,14 @@ let errorCounter: number = 0;
 let lastCheckHourCache: number = NaN;
 let lastCheckDayCache: number = NaN;
 
-function everyHourActions() {
+async function everyHourActions() {
   const thisHour = new Date().getUTCHours();
   if (lastCheckHourCache !== thisHour) {
     // running updateSunData every hour ensures compatibility with any place on Earth,
     // so whatever place we choose, it will get the fresh sunrise/sunset data
     updateSunData();
+    // rebooting router every night to get rid of some old router lags
+    // if (thisHour === 2) rebootRouter();
     lastCheckHourCache = thisHour;
   }
 }
@@ -113,11 +115,11 @@ export default async function updateStatus(): Promise<void> {
 
   // the updateStatus run every minute, but for some actions this is too often
   // so there are separate set of actions incapsulated in this function that run every hour
-  // --- update sun data ---
+  // --- update sun data | reboot router at night ---
   everyHourActions();
 
   // functions here run every year
-  // --- backup file storages | split history file storage ---
+  // --- backup file storages | split history file storage once a month ---
   await everyDayActions();
 
   // update status and history
