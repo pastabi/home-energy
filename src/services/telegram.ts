@@ -52,3 +52,27 @@ export async function notifyAllUsers(message: string): Promise<void> {
     }
   }
 }
+
+export async function notifyMe(message: string): Promise<boolean> {
+  // if (process.env.NODE_ENV !== "production") return;
+  const chatId = process.env.MY_CHAT_ID;
+  if (!chatId) {
+    console.error("Provide your chat id in .env file.");
+    return false;
+  }
+  try {
+    await telegramBot.api.sendMessage(chatId, message);
+    return true;
+  } catch (error) {
+    if (error instanceof GrammyError) {
+      if (error.description.includes("blocked")) {
+        console.log(`You blocked the bot. Unblock the bot to receive notifications.`);
+      } else console.error(`Telegram API Error: ${error.description}`);
+    } else if (error instanceof HttpError) {
+      console.error(`Could not contact Telegram: ${error.message}`);
+    } else {
+      console.error("Unknown error:", error);
+    }
+    return false;
+  }
+}

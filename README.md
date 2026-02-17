@@ -31,3 +31,5 @@
 - [x] **Add HTML template** for maintenance and items deletion call results.
 - [x] **Add history items deletion from url**, to be able to delete wrong statuses when have no access to server.
 - [x] **Add visit statistics functionality**
+- [x] **Setup socket connection check** in case of router main pager responce lag
+- [ ] **Setup router reboot remotely** by chron job on server

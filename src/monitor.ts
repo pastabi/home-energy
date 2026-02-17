@@ -1,5 +1,5 @@
 import { appendFile, mkdir } from "fs/promises";
-import { notifyAllUsers } from "./services/telegram.js";
+import { notifyAllUsers, notifyMe } from "./services/telegram.js";
 import { telegramStorageLocation } from "./services/userStorageOperations.js";
 import fullStatus, {
   updateHistory,
@@ -10,7 +10,7 @@ import fullStatus, {
   historyStorageLocation,
   monthlyHistoryStorageSplit,
 } from "./statusStorage.js";
-import { backupFileStorages } from "./utils.js";
+import { backupFileStorages, checkPort } from "./utils.js";
 import path from "path";
 
 const url = process.env.HOME_URL;
@@ -32,24 +32,53 @@ export async function logRequestCodes(statusCode: number) {
   }
 }
 
+let socketAliveCounter: number = 0;
+
 async function checkStatus(): Promise<Status> {
   try {
     if (!url) throw new Error("HOME_URL is not defined in .env file");
+    const urlObj = new URL(url);
+    const host = urlObj.hostname;
+    const port = parseInt(urlObj.port) || 80;
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 10000);
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
+    try {
+      const response = await fetch(url, {
+        signal: controller.signal,
+      });
 
-    const response = await fetch(url, {
-      signal: controller.signal,
-    });
+      clearTimeout(timeoutId);
 
-    clearTimeout(timeoutId);
+      logRequestCodes(response.status);
+      let status: boolean = response.status === 401 || response.status === 200 ? true : false;
+      socketAliveCounter = 0;
+      return { status, checkDate: new Date() };
+    } catch (fetchError: any) {
+      clearTimeout(timeoutId);
 
-    logRequestCodes(response.status);
-    let status: boolean = response.status === 401 || response.status === 200 ? true : false;
+      // SOCKET CONNECTION CHECK (IN CASE OF ROUTER PAGE RESPONCE LAG)
+      if (fetchError.name === "AbortError") {
+        const socketStatus = await checkPort(host, port);
+        if (socketStatus) {
+          socketAliveCounter++;
+          if (socketAliveCounter === 3) {
+            // notification about router lag JUST FOR ME in telegram bot
+            const success = await notifyMe(
+              "Роутер не віддає сторінку, але живий. Треба перезавантажити.",
+            );
+            // if the notification was successfull, we don't reset counter to not get notified every 3 minutes
+            if (!success) socketAliveCounter = 0;
+          }
+          logRequestCodes(999);
+          return { status: true, checkDate: new Date() };
+        }
+      }
 
-    return { status, checkDate: new Date() };
+      throw fetchError;
+    }
   } catch (error) {
+    socketAliveCounter = 0;
     logRequestCodes(0);
     return { status: false, checkDate: new Date() };
   }

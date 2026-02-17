@@ -1,5 +1,6 @@
 import { copyFile, mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
+import net from "node:net";
 
 export function myStartOfDay(date: Date): Date {
   const theDateCopy = new Date(date);
@@ -125,4 +126,30 @@ export function htmlTemplate(content: string): string {
   </html>
   `;
   return pageHtml;
+}
+
+export async function checkPort(host: string, port: number, timeout = 5000): Promise<boolean> {
+  return new Promise((resolve) => {
+    const socket = new net.Socket();
+    let status = false;
+
+    socket.setTimeout(timeout);
+
+    socket.once("connect", () => {
+      status = true;
+      socket.destroy();
+    });
+    socket.once("timeout", () => {
+      socket.destroy();
+    });
+    socket.once("error", () => {
+      socket.destroy();
+    });
+
+    socket.once("close", () => {
+      resolve(status);
+    });
+
+    socket.connect(port, host);
+  });
 }
